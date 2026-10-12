@@ -1,0 +1,45 @@
+
+Practically, the computational complexity of the $GW$ approximation depends critically upon the number of iterations needed to solve  Dyson's equation [\cref{fig:dyson_solution}] in order to obtain the full interacting Green's function. Depending on the implementation, the computational costs associated with $GW$ calculations are typically in the order from $\mathcal{O}(N^4)$ to $\mathcal{O}(N^6)$.\cite{golze2019gw} Nevertheless,  a one-shot $GW$, or $G_0 W_0$ approximation, in which only one iteration of the Dyson's equation is performed, is most widely used for computational efficiencies, and is often sufficient for achieving accurate results compared with the experimental data.\cite{yan2010band,liu2011he,li2012impact} As such, we will focus the subsequent discussions on the $G_0 W_0$ approximation, by following the procedures on how it is computationally achieved to allow practitioners to develop an intuitive understanding of the physical meanings behind. For a more complete overview on $GW$ method beyond the $G_0 W_0$ approximation, we refer the readers to the recent review by \citet{golze2019gw}.
+
+Typically, the converged Kohn-Sham orbitals and energies are often used as the starting point to construct $G_0$ in the $GW$ calculations. Even though the Kohn-Sham anzatz has already included some effects of electron correlations through the mean-field exchange-correlation potential, from the view of the perturbation theory, the Kohn-Sham energies, particularly those obtained from hybrid DFT calculations, can be considered as a good baseline to the quasiparticle energies, making them a reasonable choice as the starting point for the $GW$ calculations. 
+
+For instances, \citet{bruneval2013benchmarking} tested the starting point dependence for the $GW$ calculations for a benchmark set containing 34 small molecules [\cref{fig:GW_approximation_diagram}(b)], which shows that the HOMO energies obtained from the tuned CAM-B3LYP orbitals with the highest percentage of exact exchange give the lowest mean absolute error of 0.1 eV.  In the 2D material database established by \citet{haastrup2018}, the authors had examined the correlations between the band gap energies from $G_0 W_0$ approximation and those from generalised Kohn-Sham calculations [\cref{fig:GW_approximation_diagram}(c)], which also showed good agreement between the $G_0 W_0$ band gaps and GLLBSC functionals with exact exchanges tailored for solid-state band gap calculations, rendering the later being a cheaper alternative to the $G_0 W_0$ method for accurate band gap predictions.  Similar results were found by \citet{korbel2014benchmark} when benchmarking the performance of $GW$ approximations on small binary transition metal molecules, in which the IPs and EAs calculated with $G_0 W_0$@PBE0 level of theory give MAEs of 0.2 and 0.3 eV, respectively. In terms of the quasiparticle gaps, the $G_0 W_0$@PBE0 yields an MAE of 0.1 eV. Subsequent calculation of the optical gap with the Bethe-Salpeter equation (BSE, see below) also leads to a reasonable agreement with the experimental data with MAE $\sim 0.3$ eV, for which time-dependent DFT (TDDFT) was found to give similar level of performance  [\cref{fig:GW_approximation_diagram}(d)].
+
+The next key ingredient in solving the $GW$ equations is the self-energy term $\Sigma(\omega)$, which contributes to the change in the free-electron Green's function due to the screened Coulomb interaction with other electrons. Effectively, the electron is interacting with a polarisation cloud that is induced by all other moving electrons in the system, from which one can appreciate that calculating $\Sigma(\omega)$ will involve the computation of the electronic contribution to the frequency-dependent polarisability $\chi_{0}(\bm{r},\bm{r}^\prime,\omega)$, which modifies the bare electrostatic Coulomb potential $v(\bm{r},\bm{r}^\prime)$ to its screened counterpart $W_{0}(\bm{r},\bm{r}^\prime,\omega)$. With this in mind, given that the self-energy is given by the following convolution:
+\begin{equation}
+    \label{eq:GW_self_energy}
+    \Sigma(\bm{r},\bm{r}^\prime,\omega)=\frac{i}{2\pi}\int G_{0}(\bm{r},\bm{r}^\prime,\omega+\omega^\prime) W_0 (\bm{r},\bm{r}^\prime,\omega^\prime)\mbox{d}\omega^\prime.
+\end{equation}
+To compute the self-energy, we have, first of all, the free-particle Green's function $G_{0}(\bm{r},\bm{r}^\prime,\omega)$ from the Kohn-Sham orbitals and energies as given in \cref{eq:Lehman}. Next, the independent particle polarisability is calculated under the random phase approximation (RPA)\cite{ren2012random} as
+\begin{equation}
+    \label{eq:rpa_pol}
+    \chi_0 (\bm{r},\bm{r}^\prime,\omega)=-\frac{i}{2\pi}\int G_{0}(\bm{r},\bm{r}^\prime,\omega+\omega^\prime) G_0 (\bm{r},\bm{r}^\prime,\omega^\prime)\mbox{d}\omega^\prime.
+\end{equation}
+In brief, RPA considers the electronic polarisations coming predominantly from the Coulombic interactions in an excited electron-hole pair while ignoring the contributions from the exchange-correlation interactions.  It assumes that the phases of the wavefunctions of the excited electrons and holes are random enough that over time, they average out. Practically, \cref{eq:rpa_pol} can be computed using the corresponding Adler-Wiser expression based on the Kohn-Sham orbitals and energies:\cite{adler1962quantum,wiser1963dielectric}
+\begin{equation}
+    \label{eq:adler-wiser}
+     \chi_0 (\bm{r},\bm{r}^\prime,\omega)=\sum_j^{\mbox{\scriptsize{occ.}}}\sum_k^{\mbox{\scriptsize{virt.}}}\left[ \frac{\phi_j^{*}(\bm{r})\phi_k(\bm{r})\phi_k^{*}(\bm{r}^\prime)\phi_j(\bm{r}^\prime)}{\hbar\omega-(\varepsilon_k -\varepsilon_j)+i\eta} +\frac{\phi_j (\bm{r})\phi_{k}^{*}(\bm{r})\phi_{k}(\bm{r}^\prime)\phi_i^* (\bm{r}^\prime)}{\hbar\omega+(\varepsilon_k -\varepsilon_j)-i\eta}\right].
+\end{equation}
+With this, the frequency-dependent dielectric constant 
+\begin{equation}
+    \label{eq:freq_dielectric_constant}
+    \varepsilon(\bm{r},\bm{r}^\prime,\omega)=\delta(\bm{r},\bm{r}^\prime)-\int  v(\bm{r},\bm{r}^{\prime\prime})\chi_0  (\bm{r}^{\prime\prime},\bm{r}^\prime,\omega)\mbox{d}\bm{r}^{\prime\prime},
+\end{equation}
+from which the  screened Coulomb potential can be computed as:
+\begin{equation}
+    \label{eq:screened_Coulomb}
+    W_0 (\bm{r},\bm{r}^{\prime},\omega)=\int v(\bm{r},\bm{r}^\prime)\varepsilon^{-1}(\bm{r},\bm{r}^{\prime\prime},\omega)\mbox{d} \bm{r}^{\prime\prime}. 
+\end{equation}
+Substituting \cref{eq:Lehman} and  \cref{eq:screened_Coulomb} into \cref{eq:GW_self_energy}, one obtains the self-energy for $G_0 W_0$ approximation. 
+
+However, notice here that in both \cref{eq:Lehman} and \cref{eq:adler-wiser}, the orbital energies are the Kohn-Sham energies, whereas our targeted key quantities are the quasiparticle energies $\{\varepsilon_i^{\mbox{\scriptsize{QP}}}\}$.  A numerically efficient implementation in calculating the the quasiparticle energy is using the following linearised equation:\cite{liu2016cubic,wilhelm2016gw}
+\begin{equation}
+    \label{eq:linearised_QP_eqn}
+    \varepsilon_{i}^{\mbox{\scriptsize{QP}}}= \varepsilon_{i}+Z_{i}\langle \phi_i(\bm{r})|\mbox{Re}(\Sigma(\varepsilon_{i}^{\mbox{\scriptsize{QP}}}))-V_{\mbox{xc}}|\phi_{i}(\bm{r}) \rangle,
+\end{equation}
+where $Z_i$ is the quasiparticle renormalisation constant
+\begin{equation}
+    \label{eq:QP_renormal_const}
+    Z_i=\left[1-\frac{\mathrm{d}}{\mathrm{d}\omega}\langle \phi_i(\bm{r})|\Sigma (\omega)|\phi_i(\bm{r})\rangle\right]^{-1}.
+\end{equation}
+\cref{eq:linearised_QP_eqn} is solved self-consistently. It starts from computing $\Sigma$ by setting $\varepsilon_{i}^{\mbox{\scriptsize{QP}}}=\varepsilon_i$, the Kohn-Sham orbital energy, which the self energy is plugged back into  \cref{eq:linearised_QP_eqn} to update the quasiparticle energy $\varepsilon_{i}^{\mbox{\scriptsize{QP}}}$. The process iterates until $\varepsilon_{i}^{\mbox{\scriptsize{QP}}}$ converges, which usually can be achieved in a few iterations. 

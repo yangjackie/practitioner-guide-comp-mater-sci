@@ -1,0 +1,167 @@
+
+In contrast to MC, MD, which is often described analogously as `rolling a ball over a rugged carpet'  [\cref{fig:sampling_methods}(b)], every move in the sampling process is completely guided by the topology of the underlying PES by integrating the Newtonian equation of motion
+\begin{equation}
+    \label{eq:Newtonian}
+    M\ddot{\bm{R}}=-\nabla_{\bm{R}}E(\bm{R})
+\end{equation}
+to determine the velocity of individual atom for it to propagate through the space at every time step. Unlike MC in which the simulation temperature is introduced through the acceptance criterion, MD controls the simulation temperature by adjusting the particle velocity through thermal noises with stochastic thermostats and/or velocity rescaling. To facilitate practitioners in understanding the machinary behind MD simulations, in this part, we will be discussing the three key concepts in MD simulations: (1) Equilibration process, which typically use a velocity scaling algorithm, to bring the system to the desired temperature for production runs. (2) The integration schemes to solve the Newton's equation for propagating the particles, and (3) The main mechanisms for controlling the thermodynamic ensembles in MD simulations.
+
+
+\subsubsection{The Initial Velocities}\label{sect:initial_velocity}
+MD is typically carried out at a desired temperature $T_{\mbox{\scriptsize{desired}}}$, however, the input structure for the MD simulation typically corresponds to an idealised equilibrium structure at 0 K, which one must assigned initial velocity $v_0$ to each atom as the boundary condition for integrating the Newton's equation. The most straightforward approach to achieve this is by realising the distribution of atomic kinetic energy at temperature $T$ is given by
+\begin{equation}
+    \label{eq:particle_velocity_distribution}
+    P(v)=\sqrt{\frac{M\beta}{2\pi}}\exp\left(-\frac{\beta Mv^2}{2}\right)\sim\mathcal{N}\left(0;\sqrt{\frac{1}{M\beta}}\right),
+\end{equation}
+which is a Gaussian distribution centred at 0 with a standard deviation of $\sqrt{1/M\beta}$, with $\beta=1/k_B T$. In this case, the initial atomic velocities can be drawn randomly from this normal distribution. To ensure the materials' centre-of-mass is stationary throughout the simulation, the centre-of-mass velocity will be subtracted from the velocity of each atom. This may cause the actual system temperature $T_{\mbox{\scriptsize{actual}}}$ to deviate from $T_{\mbox{\scriptsize{desired}}}$, in which case, one can determine $T_{\mbox{\scriptsize{actual}}}$ from the total kinetic energy of the system
+\begin{equation*}
+    \frac{1}{2}\sum_{i=1}^{N}M_i v_i^2 = \frac{3}{2}Nk_B T_{\mbox{\scriptsize{actual}}},
+\end{equation*}
+in which $N$ is the total number of atoms in the system. From here, one can rescale the atomic velocity $v_i\leftarrow\lambda v_i $ by applying the scaling parameter
+\begin{equation*}
+\lambda=\sqrt{\frac{T_{\mbox{\scriptsize{desired}}}}{T_{\mbox{\scriptsize{actual}}}}}.
+\end{equation*}
+
+Practically, especially when $T_{\mbox{\scriptsize{desired}}}$ is high, one does not assign the initial velocity in an one-shot manner, as sudden temperature increase (which is equivalent to a wild MC move) can cause the atoms to move excessively, resulting in unphysical configurations with high degree of structural instabilities. Instead, one performs an \textit{equilibration MD run} over a time period $t_{\max}$ that brings up the system temperature slowly with a small time increment $t$, for example, with a linear time-dependent temperature scheduler:
+\begin{equation*}
+T(t)=T_{\mbox{\scriptsize{initial}}}+\left(\frac{T_{\mbox{\scriptsize{desired}}}-T_{\mbox{\scriptsize{initial}}}}{t_{\max}}\right)t.
+\end{equation*}
+Equilibrating structures to $T_{\mbox{\scriptsize{desired}}}$  in this way also allows the dynamical evolution of the system to closely follows the topology of the underlying PES, enabling the total system energy to be properly distributed between the potential and kinetic components, leading to a more realistic representation of the high energy structure. Conceptually, the equilibration procedure similarity with the \emph{forward diffusion} process in the diffusion generative AI model,\cite{ho2020denoising} in which  noises are  added to destroy the original samples into pure Gaussian noises. These noises are added progressively to ensure the process is stable, and the noises are learnable for the reverse process to reconstruct meaningful samples.
+
+\subsubsection{The Integration Schemes}
+To propagate the atomic positions along the PES according to the Newton's equation [\cref{eq:Newtonian}], it must be integrated and converted to a finite-difference form with respect to the time step $\Delta t$, in order to determine the change in the atomic positions and velocity from $t$ to $t+\Delta t$. This is typically achieved with a symplectic algorithm to better preserve the integrity of the atomic structures over time. The Verlet algorithm is one of the most commonly used and the simplest form of the integration scheme for solving the Newton's equation of motion,\cite{verlet1967computer,swope1982computer} which consists of following four substeps in each time step from $t$ to $t+\Delta t$:
+\begin{subequations}
+    \begin{align}
+        &(1) \quad \bm{v}_{i}\left(t+\frac{\Delta t}{2}\right) =\bm{v}_{i}(t)+\left(\frac{\bm{F}_i (t)}{2M_i}\right)\Delta t\quad \mbox{velocity update over a  half time-step} \label{eq:velocity_update_1}\\
+        &(2) \quad \bm{R}_i (t+\Delta t)=\bm{R}_i (t)+\bm{v}_{i}\left(t+\frac{\Delta t}{2}\right) \quad \mbox{postion update over a full time-step}\label{eq:position_update}\\
+        &(3) \quad \mbox{Compute the atomic force } \bm{F}_i \mbox{ at the new } \bm{R}_i  \mbox{ 
+ from the energy model} \nonumber\\
+        &(4) \quad \bm{v}_{i}(t+\Delta t)=\bm{v}_{i}\left(t+\frac{\Delta t}{2}\right) + \left(\frac{\bm{F}_{i}(t+\Delta t)}{2M_i}\right)\Delta t. \quad \mbox{velocity update over the full time-step} \label{eq:velocity_update_2}
+    \end{align}
+\end{subequations}
+From here, it is apparent that the choice of time step $\Delta t$ plays an important role in MD simulations that balances efficiency and stability, in which a small $\Delta t$ will require a long MD simulation to reach ergodicity, whereas a large $\Delta t$ forces atoms to take a large step forward which may results in unrealistic thus unstable structures. A variant of the Verlet integration is the Leap-Frog algorithm\cite{allen2017computersimulationofliquid} which asynchronously updates the velocity and positions in two steps, and is more commonly used with thermostats that controls the system temperature through velocity scaling, and its procedure is as follow:
+\begin{subequations}
+    \begin{align}
+        &(1)\quad \bm{v}_{i}\left(t+\frac{\Delta t}{2}\right)=\bm{v}_{i}\left(t-\frac{\Delta t}{2}\right)+\left(\frac{\bm{F}_i (t)}{2M_i} \right)\Delta t\label{eq:LP_velocity_update}\\
+        &(2)\quad   \bm{R}_i (t+\Delta t) =\bm{R}_i (t)+\bm{v}_{i}\left(t+\frac{\Delta t}{2}\right) \Delta t.
+    \end{align}
+\end{subequations}
+
+Before proceeding, we note that since MD simulation applies the above integration schemes to propagate systems along the PES, the underlying energy models $E(\bm{R})$ that are deployed to model the atom-atom interactions in the systems will have a strong influence of the topology of the PES that is being sampled by MD. For examples, if a harmonic forcefield is employed, then the MD simulation will only sample the harmonic portion of the PES. In contrary, when the MD simulation is coupled with DFT-based energy models, which leads to the \emph{ab initio} molecular dynamics (AIMD), it will be able to sample parts of the PES that possesses an anharmonic topologies. The later can provide intriguing information in multiphonon [\cref{sec:anharmonic_vibs}] and electron-phonon [\cref{sec:eph_coupling}] interactions in materials, which have become more widely adapted in modern computational materials science with the increasing computational powers.
+
+\subsubsection{Controlling the Thermodynamic Ensembles}
+
+Choosing and controlling the correct thermodynamic ensembles play the critical role in MD simulations for determining the (dynamic) properties of a material that closely reflect the corresponding experimental conditions under which these properties are determined in the laboratory. Theoretically, a physical property of a given material is, in additional to its intrinsic bonding characteristics, a function of the thermodynamic states determined by the macroscopic thermodynamic variables that include temperature $T$, pressure $P$, volume $V$, internal energy $E$ and chemical potential $\mu$. Some of these variables are kept fixed at the measurements, such that similar conditions should also be met in the MD simulation through, for examples, applying the appropriate thermostats (to control the temperature) and/or barostats (to control the pressure and volume), so the simulation leads to the physical observables under the correct \emph{thermodynamic ensemble}. In \cref{tab:thermodynamic_ensembles} we listed the four most commonly used thermodynamic ensembles applied in MD simulations with the corresponding mechanisms for maintaining the ensemble conditions during the simulation, and common scenarios in which these ensembles will be applied.
+\begin{table}[tbh]
+\footnotesize
+    \centering
+\caption{Common thermodynamic ensembles in molecular dynamics simulations}
+\label{tab:thermodynamic_ensembles}
+    \begin{tabular}{lp{2.2cm}p{2.8cm}p{2cm}p{3cm}p{4cm}}
+    \hline\hline
+       \textbf{Ensemble}  & \textbf{Name} & \textbf{Fixed Quantities} & \textbf{Fluctuating Quantities} & \textbf{Control Mechanisms} &  \textbf{Applications} \\\hline
+        $NVE$ & Microcanonical & Particle numbers, Volume, Energy & Temperature, Pressure & Not available & Phonon density-of-states, otherwise not widely used  \\\hline
+        $NVT$ & Canonical & Particle numbers, Volume, Temperature & Energy, Pressure  & Langevin, Nos\'{e}-Hoover, Berendsen, Andersen thermostats & protein folding, chemical reactions and solid-state experiments at constant temperature  \\ \hline
+        
+        $NPT$ & Isothermal-Isobaric & Particle Numbers, Temperature, Pressure & Energy, Volume  &  Parrinello-Rahmann, Berendsen, Andersen barostats and thermostats & Liquid materials under pressure, high-pressure polymorph predictions for solids  \\ \hline
+        $NPH$ & Isoenthalpic-Isobaric & Particle numbers, Pressure, Enthalpy & Volume, Temperature & Barostat, conserve total enthalpy $H=E+PV$. For this, the sampled distribution [\cref{eq:Boltzmann_distr}] needs to be modified into $P(H)=e^{-\beta H}/\mathcal{Z}.$ & 	Adiabatic processes at constant pressure\\
+        
+         \hline\hline
+        
+    \end{tabular}
+        
+\end{table}
+
+In this section, we will first briefly outline the key features in each thermostat and barostat listed in \cref{tab:thermodynamic_ensembles} to help the practioners in understanding the fundamental principles behind.
+
+\paragraph{\textbf{Langevin thermostat}} is a stochastic thermostat that was first applied by \citet{schneider1978molecular} to control the system temperature in the MD simulation. It is established based on the Langevin equation that couples the Newtonian dynamics of the system with the interaction with a heat bath plus some thermal noise:
+\begin{equation}
+    \label{eq:Langevin_dynamic}
+    M\ddot{\bm{R}}=-\nabla E(\bm{R})-\gamma M\dot{\bm{R}}+\sigma (t),
+\end{equation}
+in which $\gamma$ is the frictional term that determines the coupling strength to the heat bath, and $\sigma(t)\sim\mathcal{N}(0,1)$ is the time-dependent noise term that is drawn from a normal distribution. Controlling the simulation temperature is realised by invoking the fluctuation-dissipation theory\cite{kubo1966fluctuation} (see later) that couples $\gamma$ and $\sigma$ together by satisfying the condition of:
+\begin{equation}\label{eq:langevin_fluctuation}
+\left\langle\sigma(t)\sigma(t^\prime)\right\rangle=2\gamma M k_B T\delta(t-t^\prime).
+\end{equation}
+The Langevin dynamics is not only useful for simulating the dynamic responses of physical systems, but  also plays a central role in the sampling process of the diffusion generative AI models\cite{ho2020denoising} with applications such as image generation due to its stochastic nature.
+
+\paragraph{\textbf{Andersen thermostat}} is also a stochastic thermostat that was proposed by \citet{andersen1980molecular}. It is conceptually easy to understand, whereby at each fixed time interval, or based on a predefined probability, the algorithm randomly reassigned the particles' velocities in accordance to the probability distribution as given by \cref{eq:particle_velocity_distribution}.
+
+\paragraph{\textbf{Nos\'{e}-Hoover thermostat}} Unlike the previous two thermostats, the Nos\'{e}-Hoover thermostat\cite{nose1984unified,hoover1985canonical} is a deterministic approach to control the system temperature in the MD simulations. This is achieved through applying the following Lagrangian to determine the system dynamics:
+\begin{equation}
+    \label{eq:NH_lagrangian}
+    \hat{\mathcal{L}}=\sum_{i=1}^{N}\frac{1}{2}M_is^2\dot{\bm{R}}_i^2-E(\bm{R})+\frac{1}{2}Q\dot{s}^2-3N k_B T\ln s,
+\end{equation}
+in which $Q$ is a fictitious thermostat mass. The kinetic energies of the atoms are controlled through a scaling variable $s$, which is determined through the following Newtonian-like equation of motion:
+\begin{equation}
+    \label{eq:NH_KE_control}
+Q\ddot{s}=\sum_{i=1}^{N}M_i\dot{\bm{R}}_i^2-\frac{3Nk_B T}{s},
+\end{equation}
+which essentially tries to match the system's kinetic energy with the thermal energy of the heat bath at the targeted temperature $T$.
+
+\paragraph{\textbf{Berendsen thermostat}} Proposed by \citet{berendsen1984molecular}, it applies a similar approach as the velocity scaling discussed in \cref{sect:initial_velocity}, where the particle velocities are adjusted through a time-dependent factor $\lambda(t)$ as $\bm{v}_{i}(t+\Delta t)=\lambda(t)\bm{v}_i(t)$, in which 
+\begin{equation}
+    \label{eq:berendsen_lambda}
+    \lambda(t)=\sqrt{1+\frac{\Delta t}{\tau_{th}}\left(\frac{T_{\mbox{\scriptsize{target}}}}{T_{\mbox{\scriptsize{current}}}(t)}-1\right)},
+\end{equation}
+with $\tau_{th}$ is the relaxation time dictating how fast the system temperature should relax to the targeted temperature.
+
+\paragraph{\textbf{Parrinello-Rahman barostat}} is designed for applying MD simulations to study the polymorphic transitions of crystalline materials that approximately generates an $NPT$ ensemble.\cite{parrinello1980crystal,parrinello1981polymorphic} It aims to simulate the response of materials that are subjected to a constant external pressure by allowing its cell matrix $\mathbf{h}=[\bm{a},\bm{b},\bm{c}]^{T}$ to deform, meaning that both the shape and the volume of the cell are allowed to be changed during the simulation. The Cartesian positions of the constituent atoms can be determined from the cell matrix $\textbf{h}$ and their fractional coordinates $\bm{s}$ with the dot product $\bm{R}=\textbf{h}\bm{s}$. With this, the Lagrangian that controls the Parrinello-Rahman dynamics is of the following form
+\begin{equation}
+    \label{eq:parrinello-rahman-dynamic}
+    \hat{\mathcal{L}}=\sum_{i=1}^{N}\frac{1}{2}M_i\left\vert \textbf{h}\dot{\bm{s}_i}\right\vert^2+\frac{1}{2}w\mbox{Tr}\left[\dot{\textbf{h}}^{T}\dot{\textbf{h}}\right]-E(\bm{R})+\textbf{P}_{ext}V,
+\end{equation}
+in which $w$ is a fictitious mass associated with the cell degree-of-freedom, $\dot{\textbf{h}}$ is the time-dependent change in the cell matrix,  $\textbf{P}_{ext}$ is the matrix of external pressure and $V=\mbox{det}[\textbf{h}]$ is the cell volume that can be directly computed by taking the determinant of the cell matrix. This leads to the following coupled differential equations for the positions and cell matrix to be solved to propagate the system on the PES:
+\begin{equation}
+    \label{eq:PR_barostat_coupled_ODE}
+    M_{i}\ddot{\bm{s}}_i=-\nabla_{\bm{s}}E(\bm{R})+f(\dot{\textbf{h}},\ddot{\textbf{h}}),\qquad  w\ddot{\textbf{h}}=V(\bm{\sigma}-\textbf{P}_{ext}\textbf{I}).
+\end{equation}
+
+\paragraph{\textbf{Berendsen barostat}} that is proposed in the same publication as the Berendsen thermostat,\cite{berendsen1984molecular} the Berendsen barostat allows the cell volumes to be changed over time in order to match  the external pressure under the control of the rate constant $\tau_p$:
+\begin{equation}
+    \label{eq:berendsen_barostat}
+    \frac{\mathrm{d}V}{\mathrm{d}t}=\frac{1}{\tau_p}\left(P_{\mbox{\scriptsize{target}}}-P_{\mbox{\scriptsize{current}}} \right)V.
+\end{equation}
+
+\paragraph{\textbf{Andersen barostat}} that is proposed in the same publication as the Andersen thermostat,\cite{andersen1980molecular} which, unlike the Berendsen barostat, allows sampling from an $NPT$ ensemble to be undertaken in a statistically correct way. Similar to the Parrinello-Rahman barostat, this is achieved by modifying the Lagrangian for the system dynamics through introducing a fictitious degree of freedom $\mathcal{M}$ associated with the cell volume:
+\begin{equation}
+    \label{eq:andersen_lagrangian}
+    \hat{\mathcal{L}}=\sum_{i=1}^{N}\frac{1}{2}M_i \left(\dot{\bm{R}}_i \cdot\dot{\bm{R}}_i\right)-E(\bm{R})+\frac{1}{2}\mathcal{M}\dot{V}^2-P_{ext}V,
+\end{equation}
+for which the atomic positions and cell volume are updated through solving the following coupled differential equations:
+\begin{equation}
+    \label{eq:andersen_coupled_ODE}
+    M_i\ddot{\bm{R}}_i=-\nabla_{\bm{R}}E(\bm{R})+f(V), \qquad \mathcal{M}\ddot{V}=P_{int}-P_{ext},
+\end{equation}
+where the second differential equation changes the cell volume to match the difference between the internal and external pressure.
+
+With MD simulations performed under the suitable thermodynamic ensemble, one can extract materials' corresponding thermodynamic properties in a physically meaningful way. The underlying physical principles behind this practice is the \emph{fluctuation-dissipation theory}\cite{kubo1966fluctuation} which states that \emph{the linear response of a given system to an external perturbation is expressed in terms of fluctuation properties of system in equilibrium}, and the system responses to this perturbation by dissipating its energy to its surrounding. For a given physical observable $\mathcal{A}$, its response to the external perturbation is a time-dependent phenomenon, which depends on how long the system can remember its past states. This can be described by the autocorrelation function
+\begin{equation}
+    \label{eq:autocorrelations}
+    c_\mathcal{A}(t)=\int_{0}^{\infty}\langle A(t+\tau)A(t)\rangle \mathrm{d}\tau,
+\end{equation}
+where $\langle\cdot\rangle$ represents the ensemble average. At time zero, the autocorrelation function takes the value of $c_{\mathcal{A}}(0)=\langle\mathcal{A}^2(0)\rangle$, which gives the estimation on the amplitude of fluctuation. Subtracting the squared mean from the amplitude, $\langle\mathcal{A}^2\rangle-\langle\mathcal{A}\rangle^2$, gives the actual fluctuation. Based on this formation, \cref{tab:properties_from_MD} has listed a range of thermodynamic properties that can be extracted from MD simulations under a specific ensemble.
+
+\begin{table}[tbh]
+    \centering
+    \footnotesize
+\caption{Physical properties extractable from MD simulations based on fluctuation-dissipation theory.}
+\label{tab:properties_from_MD}
+    \begin{tabular}{p{2.8cm}p{2.5cm}llp{4cm}}
+    \hline\hline
+      \textbf{Symbol and Definition}   & \textbf{Name} & \textbf{Computation Formula} & \textbf{Ensemble}& \textbf{Note} \\ \hline
+        $\displaystyle{C_{V}=\left(\frac{\partial U}{\partial T}\right)_V}$ & Heat capacity at constant volume & $\displaystyle{\frac{\langle E^2\rangle-\langle E\rangle^2}{k_B T^2}}$ & $NVT$ & Fluctuation of the total energy over time.\\
+        $\displaystyle{C_{p}=\left(\frac{\partial U}{\partial T}\right)_p}$ & Heat capacity at constant pressure & $\displaystyle{\frac{\langle H^2\rangle-\langle H\rangle^2}{k_B T^2}}$ & $NPT$ & Fluctuation of the system enthalpy $(H=E-PV)$ over time.\\
+        $\displaystyle{\kappa_T=-\frac{1}{V}\left( \frac{\partial V}{\partial P}\right)_T}$ & Isothermal compressibility & $\displaystyle{\frac{\langle V^2\rangle - \langle V\rangle^2}{k_B T \langle V\rangle} }$ & $NPT$& Fluctuation of the system volume over time, from which $K=1/\kappa_L$ gives the system's bulk modulus.\\
+        $\displaystyle{\alpha=\frac{1}{V}\left(\frac{\partial V}{\partial T} \right)_p}$ & Thermal expansion coefficient & $\displaystyle{\frac{1}{k_B T^2}\frac{\langle VH\rangle-\langle V\rangle\langle H\rangle}{\langle V\rangle}}$ & $NPT$ & \\
+        $\kappa_{\alpha\beta}$ & Lattice thermal conductivity tensor & $\displaystyle{\frac{1}{k_B T^2 V}}\int_0^\infty \langle \mathcal{J}_{\alpha}(t)\mathcal{J}_{\beta}(0)\rangle \mbox{d}t$ &$NVT$& Autocorrelation from the heat current operator, based on the Green-Kubo formula.\\
+        $\varepsilon$ & Lattice dielectric constant & $\displaystyle{1+\frac{4\pi}{3k_B TV}\left(\langle \bm{M}^2\rangle-\langle\bm{M}\rangle^2\right) }$ & $NVT$& Fluctuation in the total dipole moment $\bm{M}$.\\
+        $\varepsilon(\omega)$ & & $\displaystyle{1+\frac{4\pi}{3k_B TV}\int^\infty_0 e^{i\omega t}}\langle\bm{M}(t)\bm{M}(0)\rangle \mbox{d}t$ & & Frequency-dependent dielectric constant based on the Fourier transformation of the autocorrelation function that describes the relaxation of the dipole moment. \\
+        $D$ & Atomic diffusion coefficient & $\displaystyle{\lim_{t\to\infty}\frac{1}{6t}\langle |\bm{R}(t)-\bm{R}(0)|^2\rangle }$ & $NVT$ or $NPT$ & \\
+            & &$\displaystyle{\frac{1}{3}}\int_0^\infty \langle \bm{v}(t)\bm{v}(0)\rangle \mbox{d}t$ & & Alternative formulation based on the Green-Kubo formalism with the velocity-autocorrelation function.\\
+        $g(\omega)$ & Phonon density-of-states & $\displaystyle{\sum_{i}^{N}\int_0^\infty e^{i\omega t} \frac{\langle\bm{v}_i (t)\bm{v}_i(0)\rangle}{\langle\bm{v}_i (0)\bm{v}_i(0)\rangle} \mbox{d}t}$ & $NVE$ & Fourier transformation of the velocity autocorrelation function, should not use thermostat to avoid modification of particle velocity through collision with heat bath.\\
+     \hline\hline
+    \end{tabular}
+    
+    
+\end{table}

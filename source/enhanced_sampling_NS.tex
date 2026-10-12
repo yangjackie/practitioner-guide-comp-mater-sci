@@ -1,0 +1,7 @@
+
+With the basic understanding behind metadynamics, it becomes relatively trivial to rationalise the idea behind  nested sampling. It is  usually achieved through a constrained molecular dynamics simulation with a slow-growth approach\cite{woo1997combined,jarzynski1997nonequilibrium} to simulate the free-energy required for driving the system from its initial ($\zeta_i$) to the final $(\zeta_f)$ state  [defined by the CV $\zeta$], which can be obtained from the thermodynamic integration as:\cite{sprik1998free}
+\begin{equation}
+    \label{eq:thermodynamic_integration}
+    W_{i\to f}=\int_{\zeta_i}^{\zeta_f}\left\langle \frac{\partial \mathcal{H}}{\partial \zeta}\right\rangle_{\zeta^\prime}^{\mbox{\scriptsize{cond.}}} \mbox{d}\zeta^\prime ,
+\end{equation}
+in which $\mathcal{H}$ is the Hamiltonian that determines the system dynamics and the conditional average $\langle\cdot\rangle^{\mbox{\scriptsize{cond.}}}$ are typically computed through performing MD simulations by constraining the CVs at  fixed $\zeta^\prime$, which are different points that lie on an interpolated path between $\zeta_i$ and $\zeta_f$, while allowing other degrees of freedom in the system to freely evolve at the simulating temperature [\cref{fig:sampling_methods}(j)]. 

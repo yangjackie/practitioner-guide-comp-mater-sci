@@ -1,0 +1,37 @@
+\subsubsection{Support Vector Machine}
+\label{appendix:SVM}
+
+In the na\"ive KRR, all the data points that are used for constructing the kernel matrix are treated equally and included in the model training. In another word, this kernelised data representation is \emph{dense}. However, in the presence of outliers, the KRR model can be significantly biased by the outliers and failed to capture the true underlying trend of the data [see \cref{fig:SVR_illustration}]. The support vector regression (SVR) is a variant of the SVM, that is designed for regression problems, provides an active mechanism to detect the data points that are more likely to be outside the model fitting boundaries, providing more \emph{support} to the data points that are more likely to be within the model fitting boundaries.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{SVR_illustration.pdf}
+    \caption{Comparison of  Kernel Ridge Regression (KRR) and Support Vector Regression (SVR) for fitting a 1D dataset with mild outliers. It can be observed in the region $x\in[4,7]$ that KRR is significantly affected by the outliers while SVR is able to follow the trend of the data where majority of the data points are located.}
+    \label{fig:SVR_illustration}
+\end{figure}
+
+SVR achieves this by introducing a margin of tolerance ($\varepsilon$) around the true data points, which is incorporated into the first term of the target loss function \cref{eq:KRR_loss} as follows:
+\begin{equation}
+    \label{eq:SVR_loss}
+    \mathcal{L}_{\varepsilon}(\boldsymbol{\alpha}) = 
+        \begin{cases}
+            \Vert \bm{K}^\top \boldsymbol{\alpha} - \bm{y} \Vert^2 &\text{if} \Vert \bm{K}^\top \boldsymbol{\alpha} - \bm{y} \Vert < \varepsilon,\\
+             0 & \text{otherwise}
+        \end{cases}
+\end{equation}
+This leads to the following optimization problem for SVR:
+\begin{equation}
+    \label{eq:SVR_optimization}
+    \argmin_{\boldsymbol{\alpha}} \big\{ \mathcal{L}_{\varepsilon}(\boldsymbol{\alpha}) + \lambda \boldsymbol{\alpha}^\top \bm{K} \boldsymbol{\alpha}\big\}.
+\end{equation}
+
+To apply the SVM machinary to the classification problem, we start from the loss function for logistic regression [\cref{eq:logistic_reg_loss_simplified}] by first rewriting the term after the summation sign in a more compact form as follows:
+\begin{equation}
+    \label{eq:logistic_reg_loss_compact}
+    \ell(y_i,f_i)=\log\big(1 + \exp(-m_i)\big),
+\end{equation}
+in which we define an auxiliary variable $m_i = y_i(\bm{x}_i^\top \boldsymbol{\alpha})$. Then it can be observed that the loss function $\ell(y_i,f_i)$ is a smooth monotonically decreasing function of $m_i$, which goes to zero as $m_i\to\infty$ and 1 as $m_i\to0$, such that $\ell(y_i,f_i) \in (0,1)$. To follow the idea behind SVR by excluding the outlying data points from the training of classification model, we need to correct the problem in the limit of $m_i\to\infty$. This can be achieved by replacing the logistic loss function with the hinge loss function as follows:
+\begin{equation}
+    \label{eq:SVM_classification_loss}
+     \argmin_{\boldsymbol{\alpha}} \left\{ \sum_{i=1}^N \max\left(0, 1 - y_i\left(\bm{x}_i^\top \boldsymbol{\alpha}\right)\right) + \lambda \boldsymbol{\alpha}^\top \bm{K} \boldsymbol{\alpha} \right\}.
+\end{equation}

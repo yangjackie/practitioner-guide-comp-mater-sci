@@ -1,0 +1,159 @@
+\subsection{Linear Regression Models}\label{appendix:linear_regression}
+
+In this section, we will provide detailed explanations on a few prominent linear regression ML models, including Ordinary Least Squares (OLS), Ridge Regression,\cite{hoerl1970ridge} LASSO (Least Absolute Shrinkage Operator) Regression\cite{tibshirani1996regression}  and Logistic Regressions.\cite{cox1958regression} Our focus here is to provide a comprehensive understanding of these models from the perspective of Bayesian statistics, and how this leads to the common forms of the loss functions used in training these models.
+
+\subsubsection{Ordinary Least Squares Regression}\label{appendix:ols}
+
+For the OLS regression, we consider the problem of fitting a linear model $y=\bm{x}^{\top}\boldsymbol{\beta}$, with $\boldsymbol{\beta}$ being the model parameter, to a set of data points $\{(\bm{x}_i,y_i)\}_{i=1}^{N}$, with $\bm{x}_i \in \mathbb{R}^d$ being a set of features and $y_i \in \mathbb{R}$ being the corresponding target variables, which, for simplicity, we assume to be scalars. In the probabilistic framework, instead of thinking the target variables take their deterministic values at all $y_i$, we think of them as being normally distributed around the target values with a common variance $\sigma^2$, such at $y_i\sim q_i(y)=\mathcal{N}(y|y_i,\sigma^2)$. In this csae, the goal of the OLS regression is to arrive at a model distribution $p_i(y)=\mathcal{N}(y|\bm{x}^{\top}\boldsymbol{\beta},\sigma^2)$ conditioned on the model parameters $\boldsymbol{\beta}$ that can best approximate the target distribution $q_i(y)$. 
+
+Under this view, the training of the OLS regression model can be formulated as the process of minimising the KL divergence between the model distribution $p_i(y)$ and the target distribution $q_i(y)$, which, for two normal distributions, can be computed in closed-form as
+\begin{equation}
+\label{eq:ols_kl_div}
+\mathcal{D}_{\mathrm{KL}}(q_i\Vert p_i) = \mathcal{D}_{\mathrm{KL}}(\mathcal{N}(\mu_q,\sigma^2)\Vert \mathcal{N}(\mu_p,\sigma^2)) = \frac{(\mu_q-\mu_p)^2}{2\sigma^2},
+\end{equation}
+where $\mu_q$ and $\mu_p$ are the means of the two normal distributions, which, in our case, are $y_i$ and $\bm{x}_i^{\top}\boldsymbol{\beta}$, respectively. Therefore, the training of the OLS regression model can be formulated as minimising the following loss function:
+\begin{equation}
+\label{eq:ols_loss}
+\hat{\boldsymbol{\beta}} = \argmin_{\boldsymbol{\beta}} \sum_{i=1}^{N} \mathcal{D}_{\mathrm{KL}}(q_i\Vert p_i) =  \argmin_{\boldsymbol{\beta}}   \frac{1}{2\sigma^2}\sum_{i=1}^{N} \left\Vert y_i-\bm{x}_i^{\top}\boldsymbol{\beta}\right\Vert_2^2,
+\end{equation}  
+in which the constant term $\frac{1}{2\sigma^2}$ can be ignored during the optimization process, leading to the commonly used L2-loss function for OLS regression. Practially, the above minimisation problem can be solved in closed-form, by first expanding the loss function as (in which we concatenate the data points into a data matrix $\bm{X}\in \mathbb{R}^{N\times d}$ and a target vector $\bm{y}\in \mathbb{R}^N$):
+\begin{equation}
+    \label{eq:ols_loss_expand}
+    \mathcal{L}(\boldsymbol{\beta})=(\bm{y}-\bm{X}^\top\boldsymbol{\beta})^\top (\bm{y}-\bm{X}^\top\boldsymbol{\beta}) = \boldsymbol{\beta}^\top \bm{X}\bm{X}^\top \boldsymbol{\beta} - 2\bm{y}^\top \bm{X}^\top \boldsymbol{\beta} + \bm{y}^\top \bm{y},
+\end{equation}
+and we take the gradeint of the loss function with respect to $\boldsymbol{\beta}$  using the fact that $\nabla_{\boldsymbol{\beta}} (\boldsymbol{\beta}^\top \bm{A} \boldsymbol{\beta}) = (\bm{A}+\bm{A}^\top)\boldsymbol{\beta}=2\bm{A}\boldsymbol{\beta}$ for $\bm{A}=\bm{A}^\top$ and $\nabla_{\boldsymbol{\beta}} (\boldsymbol{\beta}^\top\bm{a} ) = \bm{a}$ for $\bm{a}$ being a vector, which gives us 
+\begin{equation}
+    \label{eq:ols_loss_derivative}
+    \nabla_{\boldsymbol{\beta}}\mathcal{L}(\boldsymbol{\beta}) = 2\bm{X}\bm{X}^\top \boldsymbol{\beta} - 2\bm{X}^\top\bm{y}.
+\end{equation}
+Setting the above gradient to zero, we obtain $\bm{X}^\top\bm{X}\boldsymbol{\beta}=\bm{X}^\top\bm{y}$, where $\bm{X}^\top\bm{X}$ is the covariance matrix of the data, and $\bm{X}^\top\bm{y}$ is the covariance between the data and the target variables. The OLS problem will have the following closed-form solution \emph{when the covariance matrix $\bm{X}^\top\bm{X}$ is invertible:}
+\begin{equation}
+    \label{eq:ols_solution}
+    \hat{\boldsymbol{\beta}}=(\bm{X}^\top\bm{X})^{-1}\bm{X}^\top\bm{y}.
+\end{equation}
+
+\subsubsection{Ridge Regression}\label{appendix:ridge_regression}
+The most straightforward way to extend the OLS regression is to add a regularisation term to the loss function, to avoid the problem of non-invertibility of the covariance matrix $\bm{X}^\top\bm{X}$, which can happen when the data is high-dimensional or when there are multicollinearity among the features. This leads to the following analytical expression for the optimum model parameters for the Ridge regression model:
+\begin{equation}
+    \label{eq:ridge_solution}
+    \hat{\boldsymbol{\beta}}=(\bm{X}^\top\bm{X}+\lambda \bm{I})^{-1}\bm{X}^\top\bm{y},
+\end{equation}  
+where $\lambda$ is the regularisation parameter that controls the strength of the regularisation, and $\bm{I}$ is the identity matrix. In what follows, we shall provide two derivations for the above solution, one from the perspective of directly aligning the optimised model parameter distribution with a target prior, and one from the perspective of \emph{variational inference}.\cite{blei2017variational}
+
+\paragraph{Alignment with a Target Prior}
+This viewpoint allows us to view the training of the linear ridge regression model from the perspective of optimising the probability distribution of the model parameters $\boldsymbol{\beta}$ with respect to a target prior distribution, from which a posterior distribution of the model parameters can be obtained, where the mean of the posterior distribution corresponds to the optimal  parameters for the linear model $y=\bm{x}^\top\boldsymbol{\beta}$. 
+
+We begin with a \emph{\textbf{prior distribution}} over the model parameters $\boldsymbol{\beta}$, which represents our guess on the range in which the model parameters should reside, and is commonly chosen to be a zero-mean Gaussian distribution with a diagonal covariance matrix to allow easy sampling:
+\begin{equation}
+    \label{eq:linear_ridge_param_prior}
+    \boldsymbol{\beta}\sim \mathcal{N}(\bm{0},\tau^2\bm{I})\quad \Longleftrightarrow \quad p(\boldsymbol{\beta})\propto\exp\left(-\frac{\Vert\boldsymbol{\beta}\Vert_2^2}{2\tau^2}\right).
+\end{equation}
+Based on this prior distribution, we can write down the \textbf{\emph{likelihood}} of observing the output $y$ with given input $\bm{x}$ and model parameters $\boldsymbol{\beta}$ as a conditional nornal distribution:
+\begin{equation}    \label{eq:linear_ridge_likelihood}
+    p(y|\bm{x},\boldsymbol{\beta}) = \mathcal{N}(y|\bm{x},\boldsymbol{\beta},\sigma^2) \quad \Longleftrightarrow \quad p(y|\bm{x},\boldsymbol{\beta})\propto \exp\left(-\frac{\left\Vert y-\bm{x}^\top\boldsymbol{\beta}\right\Vert_2^2}{2\sigma^2}\right).        
+\end{equation}
+Using the Baye's theorem [\cref{eq:bayes_rule}], we can obtain the \textbf{\emph{posterior distribution}} of the model parameters after seeing some training data $\{(\bm{x}_i,y_i)\}_{i=1}^{N}$ as
+\begin{equation}    \label{eq:linear_ridge_param_posterior}
+    p(\boldsymbol{\beta}|\bm{X},\bm{y}) \sim p(\bm{y}|\bm{X},\boldsymbol{\beta})p(\boldsymbol{\beta})   \propto \exp\left(-\frac{1}{2\sigma^2}\left\Vert \bm{y}-\bm{X}_i^\top\boldsymbol{\beta}\right\Vert_2^2 - \frac{\Vert\boldsymbol{\beta}\Vert_2^2}{2\tau^2}\right),
+\end{equation}
+which is a simple product of two Gaussian distributions, and thus is also a Gaussian distribution. Primarily, the goal of training the linear ridge regression model is to find the optimal model parameters $\hat{\boldsymbol{\beta}}$ that maximise the posterior distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})$. Practically, this is often casted into a minimisation problem by taking the negative logarithm of the posterior distribution:
+\begin{equation}
+    \label{eq:log_likelihood_linear_ridge}
+    \mathcal{L}(\boldsymbol{\beta})=-\log p(\boldsymbol{\beta}|\bm{X},\bm{y}) = \frac{1}{2\sigma^2} \left\Vert \bm{y}-\bm{X}_i^\top\boldsymbol{\beta}\right\Vert_2^2 + \frac{\Vert\boldsymbol{\beta}\Vert_2^2}{2\tau^2}+\mbox{const},
+\end{equation}
+in which the constant term comes from the renormalisation constant of the posterior distribution, and can be ignored during the optimization process, so that we arrive at the commonly used loss function for training the linear ridge regression model:
+\begin{equation}\label{eq:linear_ridge_loss}
+    \hat{\boldsymbol{\beta}} = \argmin_{\boldsymbol{\beta}} \mathcal{L}(\boldsymbol{\beta}) = \argmin_{\boldsymbol{\beta}} \left[\left\Vert \bm{y}-\bm{X}_i^\top\boldsymbol{\beta}\right\Vert_2^2 + \lambda\Vert\boldsymbol{\beta}\Vert_2^2 \right],       
+\end{equation}
+where $\lambda=\sigma^2/\tau^2$ is the regularisation parameter that controls the strength of the regularisation. By taking $\nabla_{\boldsymbol{\beta}}\mathcal{L}(\boldsymbol{\beta})=-2\bm{X}^\top\bm{y}+2(\bm{X}^\top\bm{X}+\lambda\bm{I})\boldsymbol{\beta}=0$, we can obtain the closed-form solution for the optimal model parameters as shown in \cref{eq:ridge_solution}. 
+
+\paragraph{Variational Inference for Linear Ridge Regression}
+
+The above discussions of the linear ridge regression model gives a more rigid derivations for the loss function \cref{eq:ridge_solution} of the linear ridge regression model. However, it only leads to a point estimate of the model parameters $\hat{\boldsymbol{\beta}}$, without providing any information on the uncertainty of the model parameters. This problem can be solved by using the variational inference framework, which allows us to obtain the full posterior distribution of the model parameters $p(\boldsymbol{\beta}|\bm{X},\bm{y})$ instead of just a point estimate. Let us assume that our prior distribution for the model parameter $\boldsymbol{\beta}$ follows some distribution that can be written as $q(\boldsymbol{\beta})$, and we shall explore how the optimum posterior distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})$ is affected by the choice of the prior distribution $q(\boldsymbol{\beta})$.
+
+In the variational inference framework, we start by noting that what allows us to estimate the posterior distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})$ is to fitst invoke the Bayes' theorem by writing:
+\begin{equation}
+    \label{eq:bayes_linear_variational_inf}
+p(\boldsymbol{\beta}|\bm{X},\bm{y})=\frac{p(\bm{y},\boldsymbol{\beta}|\bm{X})}{p(\bm{y}|\bm{X})},
+\end{equation}
+where $p(\bm{y},\boldsymbol{\beta}|\bm{X})$ is the joint distribution of the data and the model parameters, and $p(\bm{y}|\bm{X})$ is what we called the \emph{evidence}, because it directly tells how the obaservable should distribute upon a given input $\bm{X}$. However, the evidence $p(\bm{y}|\bm{X})$ is often intractable to compute because it is formally given by the marginalisation of the joint distribution over the model parameters $\boldsymbol{\beta}$,
+\begin{equation}
+    \label{eq:bayes_linear_variational_inf_evidence_margnialisation}
+p(\bm{y}|\bm{X}) = \int p(\bm{y},\boldsymbol{\beta}|\bm{X}) \mathrm{d}\boldsymbol{\beta}.
+\end{equation}
+One can approximately thinks that this joint distribution along the $\boldsymbol{\beta}$-dimension is a delta function that is non-zero only at the optimal model parameters $\hat{\boldsymbol{\beta}}$, so unless the ridge model has been trained, which is what we are aiming for, the evidence \cref{eq:bayes_linear_variational_inf_evidence_margnialisation} remains unsolved. To solve this problem, we can introduce a variational distribution $q(\boldsymbol{\beta})$ to approximate the true posterior distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})$. This allows us to sample $\boldsymbol{\beta}$ from the variational distribution $q(\boldsymbol{\beta})$ and use these samples to estimate the evidence $p(\bm{y}|\bm{X})$ by using the following identity:
+\begin{equation}    \label{eq:bayes_linear_variational_inf_evidence_estimation}
+p(\bm{y}|\bm{X}) = \int q(\boldsymbol{\beta}) \frac{p(\bm{y},\boldsymbol{\beta}|\bm{X})}{q(\boldsymbol{\beta})} \mathrm{d}\boldsymbol{\beta} = \mathbb{E}_{ q(\boldsymbol{\beta})}\left[\frac{p(\bm{y},\boldsymbol{\beta}|\bm{X})}{q(\boldsymbol{\beta})}\right],
+\end{equation}
+taking the logarithm of both sides, we can obtain the following expression for the log-evidence:
+\begin{equation}    
+\label{eq:bayes_linear_variational_inf_log_evidence}
+\log p(\bm{y}|\bm{X}) = \log \mathbb{E}_{ q(\boldsymbol{\beta})}\left[\frac{p(\bm{y},\boldsymbol{\beta}|\bm{X})}{q(\boldsymbol{\beta})}\right].   
+\end{equation}
+This allows us to apply the Jensen's inequality to obtain  the \textbf{evidence lower bound} (ELBO) for the log-evidence:
+\begin{equation}
+    \label{eq:bayes_linear_variational_inf_ELBO}
+\log p(\bm{y}|\bm{X}) \geq \mathbb{E}_{q(\boldsymbol{\beta})}\left[\log\frac{p(\bm{y},\boldsymbol{\beta}|\bm{X})}{q(\boldsymbol{\beta})}\right] = \underbrace{\mathbb{E}_{q(\boldsymbol{\beta})}[\log p(\bm{y},\boldsymbol{\beta}|\bm{X})] - \mathbb{E}_{q(\boldsymbol{\beta})}[\log q(\boldsymbol{\beta})]}_{\mathrm{ELBO}(\boldsymbol{\beta})}.
+\end{equation}
+Comparing the above ELBO with the log-evidence  with the logarithm of $p(\bm{y}|\bm{X})$ from the Bayes' theorem [\cref{eq:bayes_linear_variational_inf}]:
+\begin{equation*}
+    \log p(\bm{y}|\bm{X}) = \log p(\bm{y},\boldsymbol{\beta}|\bm{X}) - \log p(\boldsymbol{\beta}|\bm{X},\bm{y}),
+\end{equation*}
+in which we further introduce the variational distribution $q(\boldsymbol{\beta})$ and take the expectation with respect to $q(\boldsymbol{\beta})$ on both sides, we can obtain the following expression for the log-evidence:
+\begin{equation}
+    \label{eq:bayes_linear_variational_inf_expectation_variational_dist}
+\mathbb{E}_{q(\boldsymbol{\beta})}[\log p(\bm{y}|\bm{X})] = 
+\underbrace{\mathbb{E}_{q(\boldsymbol{\beta})}\Big[\log p(\bm{y},\boldsymbol{\beta}|\bm{X}) - \log q(\boldsymbol{\beta}) \Big]}_{\mathrm{ELBO}(\boldsymbol{\beta})} + \underbrace{
+\mathbb{E}_{q(\boldsymbol{\beta})}\Big[\log q(\boldsymbol{\beta}) - \log p(\boldsymbol{\beta}|\bm{X},\bm{y})\Big]}_{\mathcal{D}_{\mathrm{KL}}(q(\boldsymbol{\beta})\Vert p(\boldsymbol{\beta}|\bm{X},\bm{y}))}.
+\end{equation}
+At this stage we can write the conditional distribution on the left hand side equivalently as $p(\bm{y}|\bm{X}) = p(\bm{y}|\bm{X},\boldsymbol{\beta})$ because the evidence is independent of the model parameters $\boldsymbol{\beta}$, such that the above expressions leads to the interpretation of the model trainin as a process of maximising the evidence:
+\begin{equation}
+    \label{eq:bayes_linear_variational_evidence_maximisation}
+\argmax_{\boldsymbol{\beta}} \mathbb{E}_{q(\boldsymbol{\beta})}[\log p(\bm{y}|\bm{X},\boldsymbol{\beta})] = \argmax_{\boldsymbol{\beta}} \mathbb{E}_{q(\boldsymbol{\beta})} \Big[\mathrm{ELBO}(\boldsymbol{\beta}) + \mathcal{D}_{\mathrm{KL}}(q(\boldsymbol{\beta})\Vert p(\boldsymbol{\beta}|\bm{X},\bm{y}))\Big].
+\end{equation}      
+To recast the above maximisation problem into a minimisation problem, we can take the negative of the above expression, and making the negsative of ELBO as the subject of the minimisation, we can obtain the following expression for the loss function for training the linear ridge regression model:
+\begin{equation}
+    \label{eq:bayes_linear_variational_inf_loss}        
+\hat{\boldsymbol{\beta}} = \argmin_{\boldsymbol{\beta}} \mathbb{E}_{q(\boldsymbol{\beta})}[-\mathrm{ELBO}(\boldsymbol{\beta})] = \argmin_{\boldsymbol{\beta}} \mathbb{E}_{q(\boldsymbol{\beta})}\Big[-\log p(\bm{y}|\bm{X},\boldsymbol{\beta}) + \mathcal{D}_{\mathrm{KL}}(q(\boldsymbol{\beta})\Vert p(\boldsymbol{\beta}|\bm{X},\bm{y})) \Big].
+\end{equation}
+
+Here, the first term on the right hand side of \cref{eq:bayes_linear_variational_inf_loss} leads directly to the L2-loss term in the loss function as in \cref{eq:ols_loss} by assuming a Gaussian likelihood for the data distribution. The second term on the right hand side of \cref{eq:bayes_linear_variational_inf_loss} leads to the regularisation term in the loss function and its expression depends on the choice of the variational distribution $q(\boldsymbol{\beta})$. In the most simplest and general form, we assume that the variational distribution $q(\boldsymbol{\beta})$ is a Gaussian distribution $q(\boldsymbol{\beta})\sim\mathcal{N}(\bm{m}_{\boldsymbol{\beta}},\bm{s}_{\boldsymbol{\beta}})$, which takes into account the uncertainty of the model parameters $\boldsymbol{\beta}$ by introducing a covariance matrix $\bm{s}_{\boldsymbol{\beta}}$, and has a mean $\bm{m}_{\boldsymbol{\beta}}$ that corresponds to the optimal model parameters. Further assuming that the true posterior distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})$ is also a Gaussian distribution $p(\boldsymbol{\beta}|\bm{X},\bm{y})\sim \mathcal{N}(\bm{0},\tau^2\bm{I})$, we can obtain the following closed-form expression for the KL divergence between the variational distribution and the true posterior distribution:
+\begin{equation}
+    \label{eq:bayesian_linear_KL_div}
+    \mathcal{D}_{\mathrm{KL}}(q\Vert p)= \frac{1}{2}\left[\frac{\mathrm{tr}(\bm{s}_{\boldsymbol{\beta}})}{\tau^2} + \frac{\bm{m}_{\boldsymbol{\beta}}^\top \bm{m}_{\boldsymbol{\beta}}}{\tau^2} - d + \log \frac{\tau^{2d}}{\det(\bm{s}_{\boldsymbol{\beta}})} \right],
+\end{equation}
+in which $d$ is the dimension of the model parameters $\boldsymbol{\beta}$. For ridge regression, we have a single prior belief on the model parameters $\boldsymbol{\beta}$, such that $q(\boldsymbol{\beta})=\delta(\boldsymbol{\beta}-\bm{m}_{\boldsymbol{\beta}})$, with $\bm{s}_{\boldsymbol{\beta}}\to\bm{0}$. Although this will blow up the KL divergence to infinity due to the log term, the key point is that the KL divergence will be dominated by the term $\frac{\bm{m}_{\boldsymbol{\beta}}^\top \bm{m}_{\boldsymbol{\beta}}}{\tau^2}$, which leads to the L2 regularisation term ($\Vert\bm{m}_{\boldsymbol{\beta}}\Vert_2^2/2\tau^2$) in the loss function \cref{eq:linear_ridge_loss}. This is how the regularisation term in the loss function for training the linear ridge regression model can be derived from the perspective of variational inference. The more interesting case is when we start working with the Gaussian variational distribution $q(\boldsymbol{\beta})\sim\mathcal{N}(\bm{m}_{\boldsymbol{\beta}},\bm{s}_{\boldsymbol{\beta}})$, in which we no longer have a single point estimate for the model parameters $\boldsymbol{\beta}$, but instead have a distribution over the model parameters that captures the uncertainty of the model parameters. It can be shown that solving the optimisation problem in \cref{eq:bayes_linear_variational_inf_loss} gives the following analytical solutions:
+\begin{equation}
+    \label{eq:bayes_linear_variational_best_solutions}
+\bm{S}_{\boldsymbol{\beta}}^{-1} = \frac{1}{\sigma^2}\bm{X}^\top\bm{X} + \frac{1}{\tau^2}\bm{I},\quad \bm{m}_{\boldsymbol{\beta}} = \bm{S}_{\boldsymbol{\beta}}\left(\frac{1}{\sigma^2}\bm{X}^\top\bm{y}\right),
+\end{equation}
+which one can show that  $\bm{m}_{\boldsymbol{\beta}}$ is of the same forms as  \cref{eq:ridge_solution}. The above solutions allow us to extimate the uncertainties when making predictions with the linear ridge regression model, which is not possible with the OLS regression model. For a given input $\bm{x}_{*}$, the predictive distribution of the output $y_*$ is given by the following Gaussian distribution:
+\begin{equation}    \label{eq:bayes_linear_variational_inf_predictive_dist}
+p(y_*|\bm{x}_*,\bm{X},\bm{y}) = \int p(y_*|\bm{x}_*,\boldsymbol{\beta})p(\boldsymbol{\beta}|\bm{X},\bm{y}) \mathrm{d}\boldsymbol{\beta} = \mathcal{N}(y_*|\bm{x}_*^\top\bm{m}_{\boldsymbol{\beta}},\bm{x}_*^\top\bm{S}_{\boldsymbol{\beta}}\bm{x}_*+\sigma^2),
+\end{equation}
+in which the mean of the predictive distribution is given by $\bm{x}_*^\top\bm{m}_{\boldsymbol{\beta}}$, and the variance of the predictive distribution is given by $\bm{x}_*^\top\bm{S}_{\boldsymbol{\beta}}\bm{x}_*+\sigma^2$, which captures the uncertainty of the prediction.
+
+\subsubsection{Logistic Regression}\label{appendix:logistic_regression}
+The above discussions on the Bayesian interpretation of the linear ridge regression model allows us to easily extend to other linear ML models. In the case of the logistic regression model, the output of the models follows the logistic distribution [see \cref{tab:continuous_prob_distributions}] $p(y|\bm{x},\boldsymbol{\beta}) = [1+\exp(-\bm{x}^\top\boldsymbol{\beta})]^{-1}$. In this case, we only need to modify the first term in the loss function \cref{eq:bayes_linear_variational_inf_loss} by replacing the Gaussian likelihood with the logistic likelihood, which leads to the following loss function for training the logistic regression model:
+\begin{equation}
+    \label{eq:logistic_reg_loss}
+    \hat{\boldsymbol{\beta}}=\argmin_{\boldsymbol{\beta}} \left[-\sum_{i}\log p(y_i\vert \bm{x}_i,\boldsymbol{\beta})+\frac{1}{2\tau^2}\Vert\boldsymbol{\beta}\Vert_2^2\right].
+\end{equation}
+
+It can be seen that the logistic regression model essentially provides two possible outputs for the target variable $y\in\{0,1\}$, such that for any given output $y_i$, its conditional distribution $p(y_i|\bm{x}_i,\boldsymbol{\beta})$ is a Bernoulli distribution, which can be written as $p(y_i|\bm{x}_i,\boldsymbol{\beta}) = p_i^{y_i}(1-p_i)^{1-y_i}$ where $p_i=p(y_i=1|\bm{x}_i,\boldsymbol{\beta})$. 
+With this, for a i.i.d. dataset $\{(\bm{x}_i,y_i)\}_{i=1}^{N}$, the likelihood of observing the data can be written as $p(\bm{y}|\bm{X},\boldsymbol{\beta}) = \prod_{i=1}^{N} p(y_i|\bm{x}_i,\boldsymbol{\beta}) = \prod_{i=1}^{N} p_i^{y_i}(1-p_i)^{1-y_i}$, which leads to the following expression for the likelihood term in the loss function \cref{eq:logistic_reg_loss}:
+\begin{equation}    \label{eq:logistic_reg_loss_likelihood}
+    \sum_{i}\log p(y_i\vert \bm{x}_i,\boldsymbol{\beta}) = \sum_{i=1}^{N} \left[y_i\log p_i + (1-y_i)\log (1-p_i)\right],
+\end{equation}
+which is the commonly used log-likelihood term for training the logistic regression model. The above expression can be further simplified by if we take $y_i\in\{-1,1\}$ instead of $y_i\in\{0,1\}$. In this case, the loss function for training the logistic regression model can be written as 
+\begin{equation}    \label{eq:logistic_reg_loss_simplified}
+    \hat{\boldsymbol{\beta}}=\argmin_{\boldsymbol{\beta}} \left[\sum_{i=1}^{N} \log\left(1+\exp(-y_i\bm{x}_i^\top\boldsymbol{\beta})\right)+\frac{1}{2\tau^2}\Vert\boldsymbol{\beta}\Vert_2^2\right].
+\end{equation}
+
+\subsubsection{LASSO Regression}\label{appendix:lasso_regression}
+In this model, instead of training the L2 norm of the model parameters $\boldsymbol{\beta}$, we take the L1 norm of the model parameters $\boldsymbol{\beta}$ as the regularisation term, which leads to the following loss function for training the LASSO regression model:
+\begin{equation}    \label{eq:lasso_loss}
+    \hat{\boldsymbol{\beta}} = \argmin_{\boldsymbol{\beta}} \mathcal{L}(\boldsymbol{\beta}) = \argmin_{\boldsymbol{\beta}} \left[\left\Vert \bm{y}-\bm{X}^\top\boldsymbol{\beta}\right\Vert_2^2 + \lambda\Vert\boldsymbol{\beta}\Vert_1^2 \right],       
+\end{equation}
+where $\Vert\boldsymbol{\beta}\Vert_1=$$\sum_{j=1}^{d} \Vert \beta_j\Vert$ is the L1 norm of the model parameters $\boldsymbol{\beta}$. Compared to the L2 regularisation term in the linear ridge regression model, the L1 regularisation term in the LASSO regression model has the effect of encouraging sparsity in the model parameters $\boldsymbol{\beta}$, which is particularly beneficial for feature selections and enhancing the interpretability of the model. The LASSO regression model can be derived from the perspective of variational inference by assuming a Laplace distribution for the prior distribution of the model parameters $\boldsymbol{\beta}\sim\exp\left(-\frac{1}{\tau}\Vert\beta_i\Vert\right)$, which naturally leads to the penalty term $\log p(\boldsymbol{\beta})\sim\frac{1}{\tau}\sum_j \Vert\beta_j\Vert$.
+

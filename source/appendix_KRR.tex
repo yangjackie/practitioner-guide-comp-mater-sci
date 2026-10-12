@@ -1,0 +1,22 @@
+\subsubsection{Kernel Ridge Regression}\label{appendix:krr}
+
+KRR provides us with a convenient bridge between linear and nonlinear regressions. In KRR, rather than directly learning a linear function of the input features $y=\bm{X}^\top\boldsymbol{\beta}$, which places a strong prior assumption that the property $y$ behaves linearly with respect to the input features $\bm{X}$, KRR employs the so-called \emph{kernel trick} that explores the similarities among the input data through the \emph{similarity kernel} $\bm{K}$, which is a symmetric and positive-definite matrix with the $(i,j)$-th entry $\bm{K}_{ij}=k_{\boldsymbol{\varphi}}(\bm{x}_i,\bm{x}_j)$ measuring the similarity between the $i$-th and $j$-th data points. To keep the dicussion general, $k_{\boldsymbol{\varphi}}(\cdot,\cdot)$ is a kernel function, which may or may not be parameterized by a set of parameters $\boldsymbol{\varphi}$. The kernel function may take a highly nonlinear form, [such as the popular radial basis function (RBF) kernel, which is defined as $k_{\boldsymbol{\varphi}}(\bm{x}_i,\bm{x}_j)=\exp(-\varphi \|\bm{x}_i-\bm{x}_j\|^2)$, see \cref{fig:RBF_kernel_1D}], and in most ML models, the kernel is precomputed and fixed during the training process. Thus the kernel hyperparameters $\boldsymbol{\varphi}$ are typically tuned through a separate optimisation process, such as grid search.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{RBF_kernel_1D.pdf}
+    \caption{Schematic illustration of the usage of a RBF kernel that maps a series of one-dimensional inputs (a) to a corresponding similarity kernel (b), where closely poisitoned points in the input space are mapped to high similarity values (red), while distantly positioned points are mapped to low similarity values (blue).}
+    \label{fig:RBF_kernel_1D}
+\end{figure}
+
+With the kernel matrix $\bm{K}$, the KRR model can be expressed as $y=\bm{K}^\top\boldsymbol{\alpha}$, where $\boldsymbol{\alpha}$ is the vector of regression coefficients. In line with the loss function for the ridge regression [\cref{eq:linear_ridge_loss}], the training of KRR is formulated as the following its corresponding loss function:
+\begin{equation}
+    \label{eq:KRR_loss}
+    \hat{\boldsymbol{\alpha}}=\argmin_{\boldsymbol{\alpha}}\Big\{ \|\bm{K}^\top\boldsymbol{\alpha}-\bm{y}\|^2+\lambda \boldsymbol{\alpha}^\top \bm{K} \boldsymbol{\alpha}\Big\},
+\end{equation}
+which has a closed-form solution as follows:
+\begin{equation}
+    \label{eq:KRR_optimum_solution}
+    \hat{\boldsymbol{\alpha}}=(\bm{K}+\lambda \bm{I})^{-1} \bm{y}.
+\end{equation}
+

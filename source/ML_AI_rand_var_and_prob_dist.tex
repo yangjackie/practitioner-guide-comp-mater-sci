@@ -1,0 +1,179 @@
+We begin our discussions here from the idea of random variables, which are variables that can take different values based on some underlying probability distributions that naturally encapsulate uncertainties in the data arises from incomplete knowledge and intrinsic variabilities on the system as well as noises and approximation errors introduced by the (numerical) modelling approaches that are used to generate these data. More specifically, in the context of atomistic simulations, the randomness in the data can arise from various sources, including: (a) Intrinsic variability of the system due to thermal fluctuations in the atomic positions and velocities in MD simulations through their initialisations as well as the random collisions with the heat bath, resulting in the motions of atoms being governed not only by Newtonian mechanics but also stochastic dynamics, the latter also plays an essential role in modern diffusion generative models.\cite{song2020score} (b) Incomplete knowledge arising from the finite sampling of the true physical distributions, for example, when taking the discrete approximation [\cref{eq:general_sampling_2}] to the continuous ensemble average [\cref{eq:general_sampling_1}], the result can fluctuate based on the number of samples $M$ and the specific configurations $\{\bm{R}\}_i$ that are included in the sampling. (c) Errors arise from the approximations in the theoretical methods and numerical implementations, for example, the choice of exchange-correlation functionals in DFT calculations, the basis set incompleteness errors in quantum chemistry calculations, and how charge polarisation effects are introduced in the empirical forcefield models. 
+
+
+The next core idea in the probability theory is the actual probability distribution function that the random variables follow. In atomistic molecular and material modellings, the most important distribution is the Boltzmann distributions. However, such distribution is fundamental only at the microstate level and we can hardly work with this full microstate distribution due to its high dimensionality and possible uncertainties in energy estimation. On the other hand, many important physical observables can be projected onto a smaller degrees-of-freedoms that can be described by simpler distributions that are much easier to sample from. For example, taking the harmonic approximation of the local energy minimum $E(\bm{R})\sim\Phi\bm{R}^2$ leads to a multimodal normal distribution $p(\bm{R})\sim \exp(-\beta\Phi\bm{R}^2)$ that is generally much easier to sample. 
+
+For this reason, in \cref{tab:discrete_prob_distributions} and \cref{tab:continuous_prob_distributions}, we summarise some of the most commonly used discrete and continuous probability distribution functions that are widely applied in ML/AI,  with specific examples on how each distribution may be relevant to the physical observables in molecular and materials science. These distributions form the mathematical foundation for many ML/AI techniques, including those for model training and sampling. Two widely used quantities for describing the shapes of the probability distribution functions, expressed with the notations of the probability theory, are the mean (or the expectation value):
+\begin{equation}
+    \label{eq:expectation_value}
+    \mathbb{E}_{\bm{x}\sim p(\bm{x})}[\bm{x}]=\int \bm{x}p(\bm{x})\mbox{d}\bm{x},
+\end{equation}
+(with which \cref{eq:general_sampling_1} can be re-written as $\langle\mathcal{A}\rangle=\mathbb{E}_{\bm{x}\sim p(\bm{x})} [\mathcal{A}(\bm{x})]$), and the variance
+\begin{equation}
+    \label{eq:variance}
+    \mbox{Var}(\bm{x})=\mathbb{E}_{\bm{x}\sim p(\bm{x})}\Big[\big(\bm{x}-\mathbb{E}_{\bm{x}\sim p(\bm{x})}[\bm{x}]\big)^2\Big],
+\end{equation}
+which are usually sufficient for characterising distributions that are symmetric in shape (\emph{e.g.} normal distributions), whereas higher order moments may be used for asymmetric distributions. 
+
+Nevertheless, normal or Gaussian distribution is arguably the most important distribution in both materials modelling and ML/AI. In the probability theory, such a distribution is often denoted as $\mathcal{N}(\mu,\sigma^2)$, with $\mu$ being the mean and $\sigma^2$ being the variance. This is because of the \emph{central limit theorem}, which states that the sum of a large number of independent and identically distributed (i.i.d.) random variables will tend to follow a normal distribution, regardless of the original distributions of these variables. This theorem justifies the wide applicability of the normal distribution in describing various physical observables that arise from the collective contributions of many microscopic factors, such as thermal fluctuations in atomic positions and velocities, electronic density variations, and so on. In ML/AI, this theorem also underpins many algorithms that assume Gaussian noise in the data or model parameters, such as Gaussian process regression,\cite{bartok2010gaussian} variational autoencoders and diffusion generative models.\cite{ho2020denoising,song2020denoising}
+
+ \begin{longtable}{p{2cm}
+    >{\raggedright\arraybackslash}p{3cm}
+    >{\raggedright\arraybackslash}p{1.5cm}
+    >{\raggedright\arraybackslash}p{1.5cm}
+    >{\raggedright\arraybackslash}p{3cm}
+    p{6cm}}
+\caption{Common discrete probability distribution functions used in ML/AI. PMF stands  for the probability mass function $\mbox{Pr}(x)$ for discrete probability distributions, under which we also presents the domains over which the random variables $x$ and parameter $\theta$ are defined. (Although the parameter in some PMFs has its unique symbol, here, we denote them all with the Greek letter $\theta$ to be consistent with subsequent discussions.) We also present the method for sampling the random variables for each distribution under the Sampling column, whereas under the Notes column we provide some reference examples on which each probability distribution is commonly used for or relevant to molecular and materials modelling.} 
+\label{tab:discrete_prob_distributions}\\
+  
+\hline\hline
+\textbf{\footnotesize{Distribution}} &  \textbf{\footnotesize{PMF } } & \textbf{\footnotesize{Mean}} & \textbf{\footnotesize{Variance}} & \textbf{\footnotesize{Sampling}} & \textbf{\footnotesize{Notes}} \\
+\hline
+\endfirsthead 
+
+\caption*{Table \ref{tab:discrete_prob_distributions} (Continued): Common discrete probability distribution functions used in ML/AI.}\\
+\hline\hline
+\textbf{\footnotesize{Distribution}} &  \textbf{\footnotesize{PMF }} & \textbf{\footnotesize{Mean}} & \textbf{\footnotesize{Variance}} & \textbf{\footnotesize{Sampling}} & \textbf{\footnotesize{Notes}} \\
+\hline
+\endhead
+\hline\hline
+\endfoot
+\hline\hline
+\endlastfoot
+
+\textbf{\footnotesize{Bernoulli}} 
+& \footnotesize{$\mbox{Pr}(X=x)=\theta^{x}(1-\theta)^{1-x}$
+
+$x \in \{0,1\}$, $\theta\in[0,1]$} 
+& \footnotesize{$\theta$} 
+& \footnotesize{$\theta(1-\theta)$} 
+& \footnotesize{Draw $u\sim$Uniform$(0,1)$, return $1$ if $u<\theta$, otherwise, return $0$} 
+& \footnotesize{Probability distribution for binary events (\emph{e.g.} coin tossing): occurrence of two possible states on a lattice site in an Ising model (\emph{e.g.} magnetic ordering or the presence of vacancies); connectivities of verticies in a stochastic network that describes the charge transport paths in molecular solids;\cite{baumeier2012stochastic} polymer modelling that describe the probability of adding one of the two possible monomeric units onto the growing polymer chain;\cite{sasanuma2014configurational} kinetics of chemical reactions, describing the probability of a given reaction might proceed through different reaction channels.\cite{tian2004binomial}} \\
+
+\textbf{\footnotesize{Binomial}}  
+& \footnotesize{$\mbox{Pr}(X=x)=\binom{n}{x}\theta^{x}(1-\theta)^{n-x}$
+
+$x \in \{0,1,\ldots,n\}$, $\theta\in[0,1]$} 
+& \footnotesize{$n\theta$} 
+& \footnotesize{$n\theta(1-\theta)$} 
+& \footnotesize{Draw $n$ times from Bernoulli$(\theta)$ and sum the results.} 
+&\footnotesize{Probability couting the success of a given event in $n$ trials: site occupancies of specific elements in a random alloy\cite{robouch2014complex} or topological defects in solids;\cite{gomez2020full} probability distribution of products of ambimodal chemical reactions, which have post-transition-state bifurcation that leads to two different products via the same transition state.\cite{tyukina2024binomial} } \\
+
+\textbf{\footnotesize{Categorical}} 
+&\footnotesize{$\mbox{Pr}(X=i)=\theta_i$
+
+$x \in \{1,\ldots,k\}$, $\theta = \{\theta_1,\ldots,\theta_k\}$, $\sum_{i=1}^{k} \theta_i = 1$}
+& \footnotesize{$\theta_i$ for one-hot, or depend on the encoding}
+& \footnotesize{$\theta_i (1-\theta_i)$ per one-hot component.}
+& \footnotesize{Draw $u\sim$Uniform$(0,1)$, return the smallest $i$ such that $\sum_{j=1}^{i} \theta_j \geq u$}
+& \footnotesize{Probablity distributions for finding each chemical element in molecules and crystals to be applied in generative models.\cite{le2023navigating,cao2025space}} \\
+
+\textbf{\footnotesize{Multinomial}}
+& \footnotesize{$\mbox{Pr}(\bm{x})=\frac{n!}{\prod_{i=1}^{k} x_i!} \prod_{i=1}^{k} \theta_i^{x_i}$
+
+$\bm{x} \in \mathbb{N}^{k}$, $\sum_{i=1}^{k} x_i = n$, $\theta = \{\theta_1,\ldots,\theta_k\}$, $\sum_{i=1}^{k} \theta_i = 1$}
+&   \footnotesize{$n \theta_i$ 
+
+per component}
+&   \footnotesize{$n \theta_i (1-\theta_i)$ per component}
+&   \footnotesize{Draw $n$ times from Categorial$(\theta)$ and count the occurrences for each category.}
+& \footnotesize{In the task of molecular generation, the multinomial distribution describes the probability of locating a substructure $k\in\{1,2,\ldots,K\}$ at the $\nu$-th $(\nu\in \{1,2,\ldots,N\})$ position in a molecule.\cite{fu2021mimosa}} \\
+
+\textbf{\footnotesize{Poisson}}
+& \footnotesize{$\mbox{Pr}(X=x)=\frac{\theta^{x} e^{-\theta}}{x!}$
+
+$x\in \{0,1,2,\ldots\}$}
+& \footnotesize{$\theta$}
+& \footnotesize{$\theta$}
+& \footnotesize{Standard Poisson sampler.}
+& \footnotesize{Describes the probability of occurrence of random events within a fixed time interval or objects within a fixed region: occurrence of a number of random cluster-defects in an arbitrary area $(A)$ in the electron microscopic image;\cite{chandran2005duality} probability distributions of rare events in MD sampling;\cite{kroger2017assessing} dynamics of chemical reaction networks, describing the probability distributions for a series of random observations occur in time;\cite{anderson2011continuous} nucleation process of crystal, describing the distribution of crystal nuclei within any given time interval.\cite{jiang2011crystal} }
+\end{longtable}
+
+
+\begin{longtable}{p{2cm}
+    >{\raggedright\arraybackslash}p{3.5cm}
+    >{\raggedright\arraybackslash}p{1.0cm}
+    >{\raggedright\arraybackslash}p{2cm}
+    >{\raggedright\arraybackslash}p{2.5cm}
+    p{6cm}}
+\caption{Common continuous probability distribution functions used in ML/AI. PDF stands for probability density function $f(x)$ as a function of the random variable $x$.} 
+\label{tab:continuous_prob_distributions}\\
+  
+\hline\hline
+\textbf{\footnotesize{Distribution}} &  \textbf{\footnotesize{PDF } } & \textbf{\footnotesize{Mean}} & \textbf{\footnotesize{Variance}} & \textbf{\footnotesize{Sampling}} & \textbf{\footnotesize{Notes}} \\
+\hline
+\endfirsthead 
+
+\caption*{Table \ref{tab:continuous_prob_distributions} (Continued): Common continuous probability distribution functions used in ML/AI.}\\
+\hline\hline
+\textbf{\footnotesize{Distribution}} &  \textbf{\footnotesize{PDF }} & \textbf{\footnotesize{Mean}} & \textbf{\footnotesize{Variance}} & \textbf{\footnotesize{Sampling}} & \textbf{\footnotesize{Notes}} \\
+\hline
+\endhead
+\hline\hline
+\endfoot
+\hline\hline
+\endlastfoot
+
+\footnotesize{\textbf{Uniform}} 
+& \footnotesize{$f(x|a,b)=\frac{1}{b-a}$, $x\in[a,b]$}
+& \footnotesize{$\frac{a-b}{2}$}
+& \footnotesize{$\frac{(b-a)^2}{12}$}
+& \footnotesize{Draw $u\sim$Unifrom(0,1) and set $x=a+(b-a)u$.}
+& \footnotesize{Wang-Landau or `flat-histogram' MC sampling of multicanonical ensemble of a physical system;\cite{wang2001efficient} initial distributions of positions and orientations in structure predictions;\cite{case2016convergence} initial particle positions and velocities for simulating nucleation in MD;\cite{diemand2013large} enumerating the configurations of site-disordered solids;\cite{holland2023workflow} uniform sampling of the torsional angles for molecular conformation generation;\cite{volokhova2024towards} combined with wrapped-normal distributions for sampling the fractional coordinates in generative models for crystal structures.\cite{luo2025crystalflow} }\\
+
+\footnotesize{\textbf{Normal (Gaussian)}} 
+& \footnotesize{$\mathcal{N}(x|\mu,\sigma^2)=\frac{1}{\sigma\sqrt{2\pi}}\exp\left[-\frac{(x-\mu)^2}{2\sigma^2} \right]$, $x\in\mathbb{R}$}
+& \footnotesize{$\mu$}
+& \footnotesize{$\sigma^2$}
+& \footnotesize{Sample standard normal $z$ via Box-Muller method and set $x=\mu+\sigma z$.}
+& \footnotesize{Most widely used distributions; basis function for molecular DFT calculations (\cref{sect:practical_DFT}); sampling initial particle velocities for MD simulations at a given temperature (\cref{sect:initial_velocity}); representing atomic densities in structural descriptors for atomistic ML;\cite{bartok2013representing} prior distributions in the Gaussian Process for, \emph{e.g.} constructing ML-based interatomic potentials;\cite{bartok2010gaussian} sampling noises in diffusion-based generative models for materials.\cite{zeni2025generative} Fundamentally, the log-likelihood constructed based on normal distribution leads to the L2-loss function (in the form of $|\bm{y}-\hat{\bm{y}}|^2$) in model training. }\\
+
+\footnotesize{\textbf{Wrapped Normal}} 
+& \footnotesize{$p(x|x_0)\propto\sum_{d\in\mathbb{Z}}\exp\left[-\frac{(x-x_0+p d)^2}{2\sigma^2}\right]$}
+& \footnotesize{$x_0$}
+& \footnotesize{$\sigma^2$}
+& \footnotesize{Draw a sample from standard normal distribution and mapped it back to the domain in which $x$ is defined by removing the appropriate amount of  periodicity $p$.}
+&\footnotesize{Fractional coordinates in crystals,\cite{zhu2024wycryst} and torsional angles of flexible molecules.\cite{jing2022torsional}}\\
+
+\footnotesize{\textbf{Log-Normal}} 
+& \footnotesize{$f(x|\mu,\sigma^2)=\frac{1}{x\sigma\sqrt{2\pi}} \exp\left[ -\frac{(\ln x-\mu)^2}{2\sigma^2}\right]$, $x>0$}
+& \footnotesize{$e^{\mu+\frac{\sigma^2}{2}}$}
+& \footnotesize{$e^{2\mu+\sigma^2}(e^{\sigma^2}-1)$}
+& \footnotesize{Sample $z\sim\mathcal{N}(\mu,\sigma^2)$ and set $x=e^z$.}
+& \footnotesize{Distribution of grain sizes in polycrystalline materials;\cite{abraham2023crystal} distribution of electronic conductance in single-molecular junctions.\cite{mejia2023microscopic}}\\
+
+\footnotesize{\textbf{Exponential}} 
+& \footnotesize{$f(x|\lambda)=\lambda e^{-\lambda x}$, $x\geq 0$}
+& \footnotesize{$\frac{1}{\lambda}$}
+& \footnotesize{$\frac{1}{\lambda^2}$}
+& \footnotesize{Draw $u\sim$Uniform(0,1) and set $x=-\frac{1}{\lambda}\ln(1-u)$.}
+& \footnotesize{Commonly used for describing the dynamics of systems. In surface diffusions, it describes the probability of finding an end state after some time $t$;\cite{andersen2019practical} in crystal nucleation, it describes the tail of the distribution for the first passage time to reach the critical nucleus size\;cite{nicholson2016analysis} in the Markov state models for molecular conformation dynamics,the dwell time is approximately exponentially distributed;\cite{chodera2014markov} distribution of the residence time of molecules adsorbed on surfaces.\cite{turchi2025segmentation}}\\
+
+\footnotesize{\textbf{Gamma}} 
+& \footnotesize{$f(x|k,\theta)=\frac{1}{\Gamma(k)\theta^k}x^{k-1}e^{-x/\theta}$, $x>0$}
+& \footnotesize{$k\theta$}
+& \footnotesize{$k\theta^2$}
+& \footnotesize{Summed exponentials or use special library.}
+& \footnotesize{In heterogeneous diffusions, the distribution of the squared displacements follows the Gamma distribution.\cite{matsuda2018estimation}}\\
+
+\footnotesize{\textbf{Laplace}} 
+& \footnotesize{$f(x|\mu,b)=\frac{1}{2b}\exp\left(-\frac{|x-\mu|}{b}\right)$, $x\in\mathbb{R}$}
+& \footnotesize{$\mu$}
+& \footnotesize{$2b^2$}
+& \footnotesize{Draw $u\sim$Uniform(0,1), if $u<0.5$, then $x=\mu+b\ln (2u)$ else $x=\mu-b\ln(2(1-u))$.}
+& \footnotesize{The log-likelihood built on this distribution leads to the L1 loss function (in the form of $|\bm{y}-\hat{\bm{y}}|$), which is often used (as the mean-absolute-error) in training ML-potentials,\cite{morrow2023validate} compress-sensing for lattice dynamics\cite{zhou2019compressive} and cluster expansion model.\cite{nelson2013compressive}}\\
+
+\footnotesize{\textbf{Logistic}} 
+& \footnotesize{$f(x|\mu,s)=\frac{\exp\left(-\frac{x-\mu}{s}\right)}{s\left(1+\exp\left(-\frac{x-\mu}{s}\right)\right)^2}$, $x\in\mathbb{R}$}
+& \footnotesize{$\mu$}
+& \footnotesize{$\frac{(\pi s)^2}{3}$}
+& \footnotesize{Draw $u\sim$Uniform(0,1) and set $x=\mu+s\log\frac{u}{1-u}$.}
+& \footnotesize{The PDF for Laplace distribution has the same functional form for the derivative of Fermi-Dirac distribution, which gives the weight of electron energies to the electron conductivity;\cite{madsen2006boltztrap} in chemical kinetic analysis, it describes the distribution of product population over time.\cite{burnham2017use}}\\
+
+\footnotesize{\textbf{Dirichlet}} 
+& \footnotesize{$f(\bm{x}|\bm{\alpha})=\frac{1}{B(\bm{\alpha})}\prod_{j=1}^{K} \bm{x}_i^{\alpha_i -1}$, $\bm{x}\in\Delta^{K-1}$ (simplex), $\bm{\alpha}\in (\alpha_1,\ldots,\alpha_K)$}
+& \footnotesize{$\mathbb{E}[x_i]=\frac{\alpha_i}{\alpha_0}$}
+& \footnotesize{$\frac{\alpha_i(\alpha_0-\alpha_i)}{\alpha_0^2(\alpha_0+1)}$, $\alpha_0=\sum_{j=1}^{K} \alpha_j$}
+& \footnotesize{Sample $y_i\sim\mbox{Gamma}(\alpha_i,1)$ and set $x_i=\frac{y_i}{\sum_{j=1}^{K} y_j}$.}
+& \footnotesize{Distribution of chemical composition in multicomponent alloys,\cite{clausen2023ab} can be used for facilitating the sampling of chemical elements in generative models.}\\ 
+\end{longtable}

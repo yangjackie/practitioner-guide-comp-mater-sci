@@ -1,0 +1,7 @@
+
+Instead of running a single MD trajectory over a range of temperatures, replica exchange [\cref{fig:sampling_methods}(h)] seeks to concurrently run $n$ independent MD simulations at multiple temperatures $[T_1,T_2,\ldots,T_n]$, in which the PES at different windows of energetic ranges are explored simultaneously. To promote energy barrier crossing, at each given time interval, the algorithm exchanges two structures (replicas) from trajectories sampling at $T_i$ and $T_j$ respectively, with a probability determined by
+\begin{equation}
+    \label{eq:replica_exchange}
+    \min\left\{1, \exp\left((\beta_i-\beta_j)(E_i-E_j)\right)\right\},
+\end{equation}
+which may be considered  analogously as an MC move that suddenly excites or relaxes a structure without introducing unphysical distortions that may destabilise the structure. 

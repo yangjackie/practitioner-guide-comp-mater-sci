@@ -1,0 +1,99 @@
+
+The local minimum on the zero-Kelvin PES $E(\bm{R})$ provides us with the information of a static equilibrium structure for a solid. However, under thermal excitation, atoms are constantly vibrating around their equilibrium positions $\bm{R}_{eq}$, and the thermal vibrations, or \emph{phonons}, in a solid has a profound influence on its corresponding physical properties. In terms of the theory of energy landscape, the vibrational behaviour of a structure ($\bm{R}_{eq}$) is fundamentally determined by the topology of the PES around the local minimum corresponding to this particular structure $\bm{R}_{eq}$.
+
+Considering  the vibration of the $i$--th atom along the $\alpha$--Cartesian direction in a crystal unit cell with $N$ atoms, the restoring force $\bm{F}_{i}^{\alpha}$ experienced by this atom is given by the first derivative of the PES with respect to the atomic displacement $\bm{R}_{i}^{\alpha}$ as 
+\begin{equation}\label{eq:vib_restor_force}
+    \bm{F}_{i}^{\alpha}=-\frac{\partial E(\bm{R})}{\partial \bm{R}_{i}^{\alpha}}.
+\end{equation}
+For small amplitude atomic vibration, it can be described under the harmonic approximation according to the Hooke's law, where $\bm{F}_{i}^{\alpha}$ is linearly correlated with the atomic displacements of all other atoms in the system along the three orthogonal Cartesian directions:
+\begin{equation}\label{eq:harmonic_forces}
+     \bm{F}_{i}^{\alpha}=\sum_{j=1}^{N}\sum_{\beta=x,y,z}\bm{\Phi}_{ij}^{\alpha\beta}\bm{R}_{j}^{\beta},
+\end{equation}
+in which $\bm{\Phi}$ is the so--called \emph{force constants} matrix that give the curvature of the local minimum on the high--dimensional PES, where its matrix element:\cite{chaput2011phonon}
+\begin{equation}\label{eq:force_constant}
+    \bm{\Phi}_{ij}^{\alpha\beta}=\frac{\partial^{2}E(\bm{R})}{\partial \bm{R}^{\alpha}_{i}\partial \bm{R}^{\beta}_{j}}=\frac{\partial}{\partial \bm{R}_{j}^{\beta}}\left(\frac{\partial E}{\partial \bm{R}_{i}^{\alpha}}\right)=-\frac{\partial \bm{F}_{i}^{\alpha}}{\partial \bm{R}_{j}^{\beta}},
+\end{equation}
+in which the last expression is obtained with the use of \cref{eq:vib_restor_force}, and with the use of finite difference, this first derivative can be calculated as [\emph{c.f.} \cref{fig:anharmonic_phonon_illustration}(d)]:
+\begin{equation}\label{eq:FC_finite_difference}
+\bm{\Phi}_{ij}^{\alpha\beta}\approx -\frac{\bm{F}_{i}^{\alpha}(\Delta\bm{R}_{j}^{\beta})}{\Delta\bm{R}_{j}^{\beta}},
+\end{equation}
+meaning the matrix element $\bm{\Phi}_{ij}^{\alpha\beta}$ can be calculated based on the force experienced by $i$--th atom along the $\alpha$--Cartesian direction when the $j$--th atom in the unit cell is displaced from its equilibrium position along the $\beta$--Cartesian direction by  $\Delta\bm{R}_{j}^{\beta}$. \cref{eq:FC_finite_difference} is the working equation for determining the force constants in real space through the finite--displacement or `frozen--phonon' method.\cite{phonopy}  It is apparent that this procedure must be repeated for all $3N$ degrees of vibrational freedoms in a solid in order to build the full force constant matrix, indicating that the calculation of $\bm{\Phi}$ is also a problem of configuration sampling on the PES.  However, the number of configurations need to be sampled can be significantly reduced by harnessing the crystal symmetry if two displacements $\Delta \bm{R}_{j}^{\beta}$ and $\Delta \bm{R}_{j^\prime}^{\beta^\prime}$ can be transformed into each other by a crystal symmetry. Furthermore, in this real space approach, a supercell of the crystal lattice is often required to account for the contributions from the long--ranged atom--atom interactions to the force constants, or equivalently, allows the long wavelength phonons to be thoroughly sampled. This can significantly increase the computational costs associated with phonon calculations. The major advantages behind such an approach are (a) The generation of atom--displaced configurations is decoupled from the force evaluation. This allows the forces of a fixed set of atom--displaced configurations to be independently evaluated with different energy calculation methods (provided the gradients are available), and benchmark the performance of different theoretical methods in determining the dynamic stabilities of crystals. (b) The force evaluations for different configurations can be carried out concurrently to maximally harness the benefit of parallel computing in modern HPCs.
+
+By making a mass--reduced Fourier transform of $\bm{\Phi}$, one can obtain the dynamical matrix $\bm{D}(\bm{q})$. Upon solving its corresponding eigenvalue equation $\bm{D}(\bm{q})\bm{\mathcal{Q}}_{\bm{q},n}=\omega^2_{\bm{q},n}\bm{\mathcal{Q}}_{\bm{q},n}$ provides a set of (up to $3N$ in case of no degeneracy) vibrational eigenmodes and eigenfrequencies $\{\bm{\mathcal{Q}}_{\bm{q},n},\omega_{\bm{q},n}\}$ for a given crystal structure. 
+
+\begin{wrapfigure}[33]{r}{0.3\textwidth}
+  \begin{center}
+    \includegraphics[width=0.3\textwidth]{free_energy_QHA.png}
+    \caption{Gibbs free energy $G(T,V)$ (at zero pressure) for \ce{Ti3SiC2} as a function of the unit cell volumes at temperatures between 0 and 1400 K. The solid curves show the fitted $G(V)$ curves at different $T$. The minimum values of the $G(V)$ curves at temperatures are depicted by the crosses. The dashed curve passing through the crosses is for guide only. [Adapted from  \citet{togo2010first}]}
+    \label{fig:free_energy_QHA}
+  \end{center}
+\end{wrapfigure}
+
+Different from the real-space approach discussed above,  the Density Functional Perturbation Theory (DFPT)\cite{baroni2001phonons} is another approach to determine $\bm{D}(\bm{q})$ directly in the reciprocal space. This approach gives the phonon eigenmodes and eigenfrequencies at the $\Gamma$ point of the reciprocal space corresponding to phonon vibrations with infinite wavelength, as such, it does not require a supercell to be used in the practical calculation but the phononic properties other than the  $\Gamma$ point one cannot be obtained. In brief, we treat the small displacement of  positions for $i$-th atom, $\bm{u}_i(\bm{q})$, that is expressed in the reciprocal space, as a small perturbation to the total system (Kohn-Sham) Hamiltonian. It is related to the real-space atomic displacement via the Fourier transformation:
+\begin{equation*}
+    \bm{R}_{I}(\bm{u}_i(\bm{q}))=\bm{R}_\ell+\tau_{s}+\bm{u}_i(\bm{q})\exp(i\bm{q}\cdot\bm{R}_\ell),
+\end{equation*}
+where $\tau_s$ takes into account the translation across different unit cells. By sampling the $\bm{q}$-points on a set of pre-defined reciprocal space grids $(n_{q_x},n_{q_{y}},n_{q_z})$ enables us to directly compute $\bm{D}(\bm{q})=\partial^2 E/\partial \bm{u}_i^{*,\alpha}(\bm{q})\partial \bm{u}_j^{\beta}(\bm{q})$ in the reciprocal space. It is immediately clear that computing the long-wavelength $(\bm{q}\to 0)$ limit of $\bm{D}(\bm{q})$ using this approach is trivial, which bypass the necessity of using large supercell as needed in the real-space approach. By treating $\bm{u}$ as a small perturbation to the system KS Hamiltonian, DFPT considers how such a  perturbation leads to the changes in the corresponding Kohn-Sham potential $\Delta V^{\mbox{\scriptsize{KS}}}(\bm{r})$, which translates to the distortion of electron density $n(\bm{r})$ that ultimately determines the changes in the KS eigenstates $\Delta\psi_{n,\bm{k}}^{\mbox{\scriptsize{KS}}}$. Consider only the first-order term in the perturbation theory, these quantities can be computed self-consistently from the Sternheimer equation:\cite{sternheimer1954electronic}
+\begin{equation}
+    \label{eq:sternheimer}
+    (\hat{H}^{\mbox{\scriptsize{KS}}}-\varepsilon_{n,\bm{k}})\Delta\psi_{n,\bm{k}}^{\mbox{\scriptsize{KS}}}=-\Delta V_{n,\bm{k}}^{\mbox{\scriptsize{KS}}}\psi_{n,\bm{k}}^{\mbox{\scriptsize{KS}}},
+\end{equation}
+which gives the value of $\partial E/\partial \bm{u}_{i}^{\alpha}({\bm{q}})$ that is needed for computing the Hessian matrix.
+
+
+
+%\begin{figure}[tb] 
+%    \centering
+%    \includegraphics[width=0.4\textwidth]{free_energy_QHA.png}
+%    \caption{\footnotesize{Gibbs free energy $G(T,V)$ (at zero pressure) for \ce{Ti3SiC2} as a function of the unit cell volumes at temperatures between 0 and 1400 K. The solid curves show the fitted $G(V)$ curves at different $T$. The minimum values of the $G(V)$ curves at temperatures are depicted by the crosses. The dashed curve passing through the crosses is for guide only. [Adapted from  \citet{togo2010first}]}} 
+%    \label{fig:free_energy_QHA}
+%\end{figure}
+
+The spectrum of phonon eigenfrequencies $\{\omega_{\bm{q},n}^2\}$ is an important material property indicator which is commonly used in computational material screenings. Systems with $\omega_{\bm{q},n}^2\geq 0$ for all $(\bm{q},n)$ are said to be dynamically (or mechanically) stable, which can be observed for materials with strong chemical bondings (\emph{e.g.} silicon). It implies that the topology of the local energy minimum is harmonic, such that $E(\bm{R})$ can be effectively expressed in terms of the othorgonal eigenmodes as
+\begin{equation}\label{eq:PES_normal_mode_displaced}
+    E(\mathcal{Q})=\frac{1}{2}\omega^2\mathcal{Q}^2.
+\end{equation} Systems which possess  $\omega_{\bm{q},n}^2<0$, or commonly known as the \emph{imaginary phonons}, are said to be \emph{anharmonic}, which will be further discussed in \cref{sec:anharmonic_vibs}. 
+
+
+
+Access to the knowledge of $\{\omega_{\bm{q},n}^2\}$ (or the \emph{phonon dispersion relationship}) allows us to further calculate other fundamental thermodynamic properties of solids,\cite{phonopy} which can complement their determinations through the corresponding experiments to enhance our understanding on the fundamental properties of the materials. For examples, the phonon density--of--states (DOS) is given by:
+\begin{equation}\label{eq:ph_DOS}
+    g(\omega)=\frac{1}{N}\delta\left(\omega-\omega_{\bm{q},n}\right),
+\end{equation}
+whereby such quantity can be  measured with the inelastic neutron scatterings.\cite{osborn2001phonon,cheng2019simulation} The energy of the phonon subsystem at a given temperature $T$ can be calculated as:
+\begin{equation}\label{eq:total_E_ph}
+    \langle E_{ph}\rangle=\sum_{\bm{q},n}\hbar\omega_{\bm{q},n}\left[\frac{1}{2}+\frac{1}{\exp(\hbar\omega_{\bm{q},n}/k_{B}T)-1}\right],
+\end{equation}
+from which the constant volume heat capacity is given by
+\begin{equation}\label{eq:Cv}
+    C_v (T)=\left(\frac{\partial \langle E_{ph}\rangle}{\partial T}\right)_V
+    =\sum_{\bm{q},n}k_{B}\left(\frac{\hbar\omega_{\bm{q},n}}{k_{B}T}\right)^2\left[\frac{\exp(\hbar\omega_{\bm{q},n}/k_{B}T)}{(\exp(\hbar\omega_{\bm{q},n}/k_{B}T)-1)^2}\right],
+\end{equation}
+which is the major contribution to the heat capacity in semiconducting and insulating materials, and  can typically be measured with differential scanning calorimetry.  
+
+
+Thermodynamically, phonon vibrations contributes towards the Helmholtz free energy $F_{vib}(T)$ of a crystalline solid at a constant volume $V$. According to statistical mechanics, 
+\begin{equation}\label{eq:free_energy_statistical_mech}
+    F_{vib}(T)=-k_{B}T\ln Z_{vib},
+\end{equation}
+where $Z_{vib}(T)=\prod_{\bm{q},n}\frac{\exp(-\hbar\omega_{\bm{q},n}/2k_{B}T)}{1-\exp(-\hbar\omega_{\bm{q},n}/k_{B}T)}$ is the phonon partition function, such that:\cite{phonopy}
+\begin{equation}\label{eq:helmholtz}
+F_{vib}(T)=\frac{1}{2}\sum_{\bm{q},n}\hbar\omega_{\bm{q},n}+k_{B}T\sum_{\bm{q},n}\ln\left[1-\exp(-\hbar\omega_{\bm{q},n}/k_{B}T)\right].
+\end{equation}
+Correspondingly, the vibrational contribution to the entropy is
+\begin{equation}\label{eq:vib_entropy}
+S_{vib}(T)=-\left(\frac{\partial F_{vib}}{\partial T}\right)_V=\frac{1}{2T}\sum_{\bm{q},n}\hbar\omega_{\bm{q},n}\coth\left(\frac{\hbar\omega_{\bm{q},n}}{k_{B}T}\right) - k_{B}\sum_{\bm{q},n}\ln\left[2\sinh\left(\frac{\hbar\omega_{\bm{q},n}}{k_{B}T}\right)\right].
+\end{equation}
+
+Alternatively, the vibrational contribution to the Helmholtz free energy can also be calculated from the phonon DOS $g(\omega)$ extracted from the equilibrium MD calculations under canonical ensemble from the velocity autocorrelation function [\emph{c.f.} \cref{tab:properties_from_MD}], from which the corresponding vibrational contribution to the free energy can be calculated by invoking the relationship of \cref{eq:free_energy_statistical_mech}. Under the harmonic approximation, it can be shown that the free energy takes the following from (for a system containing $N$ atoms):
+\begin{equation}
+    \label{eq:phonon_FE_from_density}
+    F_{vib}=-\frac{k_{B}T}{N}\int_{0}^{\omega_{\max}}g(\omega)\ln\left[2\sinh\left(\frac{\hbar\omega}{2k_{B}T}\right)\right]\mbox{d}\omega.
+\end{equation}
+
+
+Ultimately, the thermodynamic stability of a solid is governed by its Gibbs free energy that is a function of the state variables [temperature ($T$), volume ($V$) and pressure ($p$)]. Knowing the Gibbs free energy also provides the information on the thermal expansion coefficients for a solid. This is because under the \emph{quasiharmonic approximation}, the equilibrium volume at a given temperature is the one that minimizes the Gibbs free energy at a given $T$:\cite{togo2010first}
+\begin{equation}\label{eq:Gibbs_energy_minimisation}
+    G(T,p)=\min_{V}\left[U(V)+F_{vib}(T,V)+pV\right],
+\end{equation}
+in which $U(V)$ is the internal energy (\emph{e.g.} total energy from electronic structural calculation) for the system at a given volume $V$. \cref{eq:Gibbs_energy_minimisation} shows that the phonon vibration play a major contribution to the Gibbs free energy of a solid. Practically, in order to determine $G(T)$ (at a given pressure, $e.g.$ $p=0$), phonon and Helmholtz free energy calculations need to be performed for a given solid at its equilibrium volume, as well as a few extra  expanded and shrinked volumes in order to identify the free energy minimum at a given temperature [\cref{fig:free_energy_QHA}].  This further forms the basis for the \emph{ab initio} determination of the phase diagrams and critical phase transition temperature $T_{c}$ for polymorphic inorganic\cite{da2015phase} and organic\cite{nyman2015static} solids: for two competing phases $P_1$ and $P_2$, the stable polymorph at a given temperature is the one with a lower Gibbs free energy, whereby $T_{c}$ is the solution for $G_{P_1}(T)=G_{P_2}(T)$, if exists. 

@@ -1,0 +1,395 @@
+% ! TEX root = main.tex
+
+\documentclass[%
+aip,
+rmp,
+10pt, 
+amsmath,
+amssymb,
+%preprint,
+%reprint,
+floatfix,
+nofootinbib,
+%twoside
+%author-year,
+%author-numerical,
+]{revtex4-2}
+
+\usepackage{titlesec}
+\titlespacing*{\section}
+{0pt}{1.5ex}{1.5ex}
+\titlespacing*{\subsection}
+{0pt}{1ex}{1ex}
+\titlespacing*{\subsubsection}
+{0pt}{1ex}{1ex}
+\usepackage{setspace}
+\usepackage{tabularx}
+\usepackage{wasysym}
+%\onehalfspacing
+
+%\usepackage{subcaption}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Place any additional packages needed here.  Only include packages
+%% which are essential, to avoid problems later. Do NOT use any
+%% packages which require e-TeX (for example etoolbox): the e-TeX
+%% extensions are not currently available on the ACS conversion
+%% servers.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[version=3]{mhchem} 
+\usepackage[dvipsnames]{xcolor}
+%\usepackage{subcaption}
+\usepackage{amsfonts}
+
+\usepackage{graphicx}% Include figure files
+\usepackage[colorlinks=true,citecolor=red]{hyperref}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{url}
+\usepackage{color}
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+\usepackage{comment}
+\usepackage[version=3]{mhchem}
+\usepackage[top=1cm, bottom=1.8cm, left=2.2cm, right=1.8cm, heightrounded]{geometry}
+
+%\setlength{\oddsidemargin}{-0.15in}  
+%\setlength{\evensidemargin}{-0.15in}
+%\setlength{\textwidth}{7in}    
+%\setlength{\topmargin}{-1in}   
+%\setlength{\textheight}{9.7in}  
+
+%\usepackage{balance}
+\usepackage[capitalise]{cleveref} % Nice reference scheme. use: \cref
+%\usepackage{newtxmath} 
+%\usepackage{ccfonts}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[sfdefault]{biolinum}   %% Option 'sfdefault' only if
+%% the base font of the document is to be sans serif
+\usepackage{graphicx} 
+%\usepackage{epstopdf}
+%\usepackage{booktabs}
+%\usepackage[upright]{fourier} % not slanted greek letters
+%\usepackage[euler]{textgreek}
+\usepackage{amsmath}
+%\usepackage{lastpage}
+\usepackage{longtable}
+\setlength{\LTcapwidth}{\textwidth}
+\usepackage{wrapfig,floatflt}
+\usepackage{etoolbox}
+
+%\usepackage{ccfonts}
+\usepackage{setspace}
+
+%\usepackage{concmath} 
+
+%\usepackage[light]{CrimsonPro}
+\usepackage{mlmodern}
+%\usepackage{times}%$,mathptmx}
+
+\usepackage{dsfont}
+\usepackage{multirow}
+\renewcommand{\bm}[1]{\mathbf{#1}}
+\newcommand*{\myfont}{\fontfamily{phv}\selectfont}
+\DeclareTextFontCommand{\textmyfont}{\myfont}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+
+\newcommand{\myfontsp}[2]{\ensuremath{\textmyfont{#1}_{\textmyfont{#2}}}}
+\newcommand*\jy[1]{\textcolor{blue}{#1}} 
+\newcommand*\pol[1]{\textcolor{black}{#1}} 
+\newcommand{\dd}{\mathbm{d}}
+
+\newcommand{\myatm}[2]{\ensuremath{\ce{#1}_{#2}}}
+\newcommand{\angstrom}{\textup{\AA}}
+% for derivatives, abs, norm... symbol. see http://mirrors.ctan.org/macros/latex/contrib/commath/commath.pdf
+
+\renewcommand{\thefootnote}{\roman{footnote}}
+\let\oldbibliography\thebibliography
+\renewcommand{\thebibliography}[1]{\oldbibliography{#1}
+\setlength{\itemsep}{0pt}} 
+\allowdisplaybreaks
+
+\makeatletter
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\p@subsection}{}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand{\p@subsubsection}{}
+\makeatother
+
+\counterwithin*{equation}{section}
+
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+
+
+\usepackage[most]{tcolorbox}
+\newtcolorbox{myquote}[1][]{%
+    colback=black!5,
+    colframe=black!5,
+    notitle,
+    sharp corners,
+    borderline west={2pt}{0pt}{red!80!black},
+    enhanced,
+    breakable,
+}
+\usepackage{capt-of}
+
+%vertical line on the left margin
+%\usepackage{background}
+%\SetBgScale{1}
+%\SetBgAngle{0}
+%\SetBgColor{black}
+%\SetBgContents{\rule{.4pt}{\paperheight}} % Adjust .4pt for thickness
+%\SetBgHshift{-10.05cm} % Adjust this value to position it in the margin
+
+\begin{document}
+
+\singlespacing
+%\setstretch{0.9}
+
+
+%\renewcommand{\baselinestretch}{0.9}
+
+\title{A Practitioner's Guide to Materials Theory and Computation in the Age of Big Data and Artificial Intelligence}
+
+\author{Jack Yang}
+\affiliation{School of Materials Science and Engineering, University of New South Wales, Kensington, New South Wales 2052, Australia}
+\email{jianliang.yang1@unsw.edu.au}
+
+
+\date{\today}
+
+\begin{abstract}
+Computational modelling nowadays constitutes an important pillar in materials science. Over the past decade, the rapid growth of atomistic modellings, high-throughput computations and artificial intelligence, is transforming how the structures and  properties of materials are modelled, discovered, understood, and designed. This advancement harnesses the fruits from generations of innovative works from theoreticians, that brought complex mathematical and physical theories, as well as plausible approximations of which, into practical tools that enables the practitioners to model the materials' behaviours at predictive accuracies. However, the increasing diversity of available methods also creates the challenges for typical practitioners from understanding the underlying principles, particularly through a coherent framework that connects atomistic theory, statistical sampling, materials physics, and modern probabilistic machine learning. This monograph, that is built upon author's own research and research experiences, tries to  present a practitioner-oriented, pedagogical overview of materials theory and computation, organised around the concepts of the potential-energy landscape and statistical sampling. It showcases how this framework provides a common basis for understanding structural stability, phase behaviour, electronic and magnetic properties, and many other relevant properties of materials at the atomistic scale, through a systematic review of empirical force fields, density-functional theory, many-body electronic-structure methods, statistical sampling techniques, and computational approaches for predicting material properties. It then introduces high-throughput workflows and materials databases to further facilitate the establishing of  the probabilistic foundations required for understanding the machineries for artificial intelligence in materials studies. Particular attention is given to atomistic representations, graph neural networks, and generative models, by demonstrating the power and importance of symmetry, group theory, differential geometries and stochastic processes that are combined with materials theory and potential-energy landscape samplings to drive the theoretical developments in this field, in which many of these topics may not be familiar to traditional materials modellers, such as those who have been working primarily with Density Functional Theory. By integrating established physical modelling with emerging data-driven and probability-based approach, this work highlights both the opportunities and challenges  in computational materials research at the age of artificial intelligence, and outlines future directions toward physics-informed, efficient, and reliable computational materials discovery.
+\end{abstract}	
+\maketitle
+
+%\small
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% START OF THE MAIN DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\input{intro.tex}
+
+\section{Energy Landscape as the Fundamental Concept in Material Science}
+\label{chapter:energy_landscape_concept}
+\input{general_overview.tex} 
+
+\subsection{Energetic Measures for Material Stability}
+\input{energetic_mesures.tex}\subsection{The Needs for Sampling the Energy Landscape} 
+\label{sect:sampling_examples}
+\input{landscape_sampling_examples.tex}
+ 
+\section{Theoretical Methods for Material Modellings at Atomistic Scale}\label{chapter:energy_models}
+Having outlined seven major themes to demonstrate energy landscape being a universal concept in (computational) material science, in this section, we will review the theoretical methods to obtain the total energy of the system $E$ as the function of the atomic positions $\bm{R}$.  
+
+\subsection{Empirical Forcefield}
+\label{sect:empirical_forcefield}
+\input{force_fields.tex}
+
+\subsection{Density Functional Theory}
+\label{sec:DFT}
+\subsubsection{The Many-Body Schr\"{o}dinger Equation}
+\input{DFT_many_body_Seq.tex}
+\subsubsection{The Hohenberg-Kohn Theorems and the Kohn-Sham Equations }
+\input{DFT_KS_theorem.tex}  
+\subsubsection{The Jacob's Ladder for DFAs}
+\input{DFT_Jacob_ladder.tex}
+\subsubsection{Challenges and Pitfalls in Standard DFAs} \label{sect:DFA_challenge}
+\input{DFT_challenges.tex}
+\subsubsection{Modern Dispersion Corrected DFAs Commonly Applied in Materials Modelling}
+\input{DFT_dispersion_corrections.tex}
+\subsubsection{Practical Aspects in DFT Calculations}\label{sect:practical_DFT}
+\input{DFT_practical.tex}
+\subsubsection{Performance Benchmarking for Density Functional Approximations}
+\input{DFT_benchmarking.tex}
+\label{sec:DFT_benchmark}
+
+\subsection{The GW Approximation}\label{sect:GW_approximation}
+\subsubsection{Motivations}\label{sect:motivation_GW}
+\input{GW_motivations.tex}
+\subsubsection{A Quick Primer on Many-Body Green's Function}
+\input{GW_Green_function.tex}
+\subsubsection{The $G_0 W_0$ Approximation}
+\input{GW_G0W0.tex}
+\subsubsection{The Bethe-Salpeter Equation}
+\input{GW_BS_eq.tex}
+ 
+\section{Traditional Methods of Structure Predictions and Sampling}\label{chapter:sampling_methods}
+
+\input{sampling_intro.tex}
+\subsection{Monte Carlo Sampling}\label{sect:MonteCarlo}
+\input{sampling_MC.tex}
+\subsection{Molecular Dynamics}\label{sect:molecular_dynamics}
+\input{sampling_MD.tex}
+
+\subsection{Enhanced Samplings for Rare Events}\label{sect:enhanced_smapling}
+\input{enhanced_sampling_intro.tex}
+\subsubsection{Wang-Landau Sampling} 
+\input{enhanced_sampling_WL.tex}
+\subsubsection{Simulated Annealing}
+\input{enhanced_sampling_SA.tex}
+\subsubsection{Replica exchange (or Parallel Tempering)}
+\input{enhanced_sampling_RE.tex}
+\subsubsection{Metadynamics} 
+\label{section:metaD}
+\input{enhanced_sampling_MetaD.tex}
+\subsubsection{Nested Sampling}\label{sec:nested_sampling}
+\input{enhanced_sampling_NS.tex}
+\subsubsection{Adaptive Biasing Force (ABF) Method}
+\input{enhanced_sampling_ABF.tex}
+\subsubsection{Adaptive Sampling}
+\input{enhanced_sampling_adaptive_sampling.tex}
+
+
+\section{Material Properties from Atomistic Modelling}\label{chapter:physical_properties}
+
+\subsection{Structural Dynamics}\label{sect:phonon_harmonic_and_anharmonic}
+
+\subsubsection{Phonons and Thermal Properties Under (Quasi)--Harmonic Approximations}\label{sect:phonon}
+\input{properties_harmonic_phonon.tex}
+
+\subsubsection{Anharmonic Vibrations in Solids}\label{sec:anharmonic_vibs}
+\input{properties_anharmonic_phonons.tex}
+
+
+\subsubsection{Ion Diffusions}
+\input{properties_ion_diffusions.tex}
+
+\subsection{Electronic and Magnetic Properties}
+
+\subsubsection{Electronic Band Structures and Density--of--States}\label{sect:band_structure}
+\input{properties_band_structures.tex}
+
+\subsubsection{Transport Properties}
+\input{properties_transports.tex}
+
+\subsubsection{Polarisations and Dielectric Properties}
+\input{properties_dielectrics.tex}
+
+\subsubsection{Electron--Phonon Interactions}\label{sec:eph_coupling}
+\input{properties_eph.tex}
+
+\subsubsection{Magnetic Properties}
+\label{sec:mag_prop}
+\input{properties_magnetic.tex}
+
+\section{High-Throughput Computation and Materials Informatics}\label{chapter:high-throughput}
+
+\subsection{Motivations behind the Paradigm Switch to Materials Informatics}
+\input{HT_motivations.tex}
+
+\subsection{Automated Workflows for High-Throughput Computational Materials Science}
+\input{HT_workflows.tex}
+
+\subsection{Computational Materials Databases}
+\input{HT_databases.tex}
+
+
+\section{Machine Learning and Artificial Intelligence for Materials Science}
+\label{sect:ML_AI_Mat_Sci} 
+
+\subsection{Overview}\label{sec:ml_overview}
+\input{ML_AI_overview.tex} 
+
+\subsection{Fundamentals of Probability Theory}
+\label{sec:prob_theory_fundamentals}
+
+\subsubsection{Motivations}
+\input{ML_AI_prob_theory_motivation.tex}
+
+\subsubsection{Random Variables and Common Probability Distributions} 
+\input{ML_AI_rand_var_and_prob_dist.tex}
+ 
+\subsubsection{Dealing with Multidimensional Joint Probability Distributions}
+\input{ML_AI_joint_dist.tex}
+
+\subsubsection{Connection to Information Theory}
+\input{ML_AI_info_theory.tex}
+
+\subsubsection{PES Sampling in the Context of Probability Theory}
+\label{sec:ML_AI_PES_sampling_info_theory}
+\input{ML_AI_PES_sampling_info_theory.tex}
+
+\subsection{Fundamentals of Machine Learning}\label{sec:ml_fundamentals}
+
+\subsubsection{Motivations}
+\input{ML_motivations.tex}
+
+\subsubsection{Supervised Machine Learning: General Framework and Applications}
+\label{sec:supervised_ML}
+\input{ML_AI_supervised_ML.tex}
+
+\subsubsection{Unsupervised Machine Learning: General Framework and Applications}
+\label{sec:unsupervised_ML}
+\input{ML_AI_unsupervised_ML.tex}
+
+%\subsubsection{Concepts in Model Training}
+
+%\subsubsection{Interpretability of Machine Learning Models}
+
+\subsection{Feature Engineering for Machine Learning in Materials}\label{sec:feature_eng}
+\input{ML_AI_feature_engineering.tex}
+
+\subsection{Fundamentals of Deep Learning}\label{sec:dl_fundamentals}
+\input{ML_AI_deep_learning_models}
+
+\subsection{Generative AI}\label{sec:generative_AI}
+\input{ML_AI_generative}
+
+%\subsection{Closing Remarks}
+%\input{ML_AI_closing}
+
+%\subsection{Applications of AI in Materials Science}\label{sec:application_AI}
+
+%\subsection{Challenges for ML/AI in Materials Studies}\label{sec:challenge_AI}
+
+\section{Conclusions and Future Outlooks}
+\label{sec:conclusion_outlook}
+\input{conclusions.tex}
+
+\input{appendix_intro.tex}
+
+\section{Supervised Machine Learning Models}
+\label{appendix:supervised_ML}
+\input{appendix_linear_regression.tex}
+\input{multimodal_bayesian_regression.tex}
+\input{appendix_nonlinear_regression.tex}
+   \input{appendix_KRR.tex}
+   \input{appendix_SVM.tex}
+   \input{appendix_GP.tex} 
+
+\section{Unsupervised Machine Learning Models}
+\label{appendix:unsupervised_ML}
+\input{appendix_unsupervised_ML.tex}
+
+\section{Details for Generating \cref{fig:ridge_regression_prob_dist_loss_landscape}}
+\label{appendix:details_ridge_regression_loss_landscape}
+\input{appendix_ridge_example_details.tex}
+
+\section{Relationships amongst Different Generative Models}
+\label{appendix:generative_model_relations}
+\input{appendix_generative_model_charts}
+
+
+\section*{Acknowledgment}
+I would like to thank Tim Gould for providing a Pythonic version of the GMTKN database in preparation for \cref{fig:DFA_benchmarks}.
+
+
+%\scriptsize
+\newpage 
+\small
+
+\bibliography{ref.bib}
+
+\end{document}

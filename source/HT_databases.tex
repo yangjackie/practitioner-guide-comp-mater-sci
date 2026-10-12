@@ -1,0 +1,263 @@
+Through the implementations and the utilisation of standardised computational protocols through orchestrated workflows, the past decade has witnessed the rapid emergence of numerous large-scale computational materials databases that systematically and reproducibly curate vast collections of high-quality computational data for materials at unprecedented scale.  
+
+For example, the \textit{Materials Project}\cite{jain_apl_mater} database is one of the earliest of its kind, that emerged in early 2010s as a transformative initiative under the US Materials Genome Initiative (MGI). Founded at Lawrence Berkeley National Laboratory, the project pioneered the vision of creating a freely accessible, community-driven repository of high-quality, standardised and consistent DFT calculations for crystalline and molecular materials. As discussed in the previous section, \texttt{pymatgen}\cite{ong2013python} is at the centre to the architecture of Materials Project, which provides a comprehensive suite of Python toolkit for preparing, executing, analysing, as well as  infrastructure for integrating with automated workflow management packages such as Fireworks\cite{jain2015fireworks} for performing calculations over large-scale HPC facilities. This synergy between standardised workflows and centralised data dissemination have enabled the Materials Project to systematically compute and validate properties for over 200,000 crystalline materials and 570,000+ molecules (as of late 2025), typically at the PBE+U level of theory. The \texttt{pymatgen} package has also  become widely adopted by invidual research groups to facilitate the building of their own customised workflows and data analysis softwares. Beyond the Materials Project, numerous other computational materials databases have been established over the years, and \cref{tab:materials_databases} provided a non-exhaustive list of some of the major computational materials databases that are widely used by the community. These databases typically cover a wide range of materials classes, including crystalline solids, 2D materials, and molecules whilst providing data on a generic set of materials properties such as structural information, thermodyanmic stabilities, electronic, dielectric/optical, magnetic, mechanical properties and more. 
+
+%=========================================
+% List of major computational materials databases
+%=========================================
+\begingroup % Start a group to localize the change
+\renewcommand{\arraystretch}{1.2}  
+\LTcapwidth=\textwidth
+
+\begin{longtable}{p{3cm}p{3cm}p{11cm}}
+\caption{List of major computational materials databases.}
+    \label{tab:materials_databases}\\
+    
+    \hline\hline
+     \textbf{\footnotesize{Databases}}    & \textbf{\footnotesize{Reference}}  & 
+     \textbf{\footnotesize{Description}}\\
+     \hline
+     \endfirsthead
+\caption*{Table \ref{tab:materials_databases} (Continued): List of major computational materials databases.}\\\toprule
+     \textbf{\footnotesize{Databases}}    & \textbf{\footnotesize{Reference}}  &  
+     \textbf{\footnotesize{Description}}\\
+     \hline
+\endhead
+\hline\hline
+\endfoot
+\hline\hline
+\endlastfoot
+
+\footnotesize{Materials Project}
+&\footnotesize{\citet{jain_apl_mater}}
+&\footnotesize{Established under the US Materials Genome Initiative. This database contains the DFT calculation results at the PBE+U level for 200K+ crystalline materials and 570K+ molecules (as in Nov. 2025). The database holds the information of structures, DFT energies, magnetic structures, electronic band structures and DOS, elastic tensors \emph{etc.} The database can be accessed through the \texttt{pymatgen}\cite{ong2013python} Restful API (Application Programming Interface).}\\
+
+\footnotesize{MP-ALOE}
+&\footnotesize{\citet{kuner2025mp}}
+&{\footnotesize{\textbf{M}aterials \textbf{P}roject-\textbf{A}ctive \textbf{L}earning of \textbf{O}ff
+\textbf{E}quilibrium structures} database containing nearly 1 M DFT calculations for solid-state materials in and off equilibrium structures at the meta-GGA (r$^2$SCAN)\cite{furness2020accurate} level, generating higher accuracy data for AI model training.}\\
+
+\footnotesize{OQMD (Open Quantum Materials Database)}
+&\footnotesize{\citet{saal2013materials}}
+&\footnotesize{This database contains the DFT computed thermodynamics and structural properties for 1.3M+ inorganic solids. It was curated by Chris Wolverton's research group from  Northwestern University.  It can be accessed through the OPTIMADE\cite{optimade} API.}\\
+
+\footnotesize{JRVIS-DFT (\textbf{J}oint \textbf{A}utomated \textbf{R}epository for \textbf{V}arious \textbf{I}ntegrated \textbf{S}imulations)}
+&\footnotesize{\citet{choudhary2020joint}}
+&\footnotesize{This database contains the DFT calculation results for 80K+ materials, not only entailing the structures and their corresponding energy stabilities, but also databased containing specific materials properties including (a) optoelectronic properties computed with optB88vdw  and TBmBJ formalism\cite{choudhary2018computational}, (b) elastic properties for bulk and 2D materials with vdW density functionals\cite{choudhary2018elastic}, (c) nontrivial topological materials\cite{choudhary2019high}, (d) electric field gradients\cite{choudhary2020density}, and (e) computational scanning tunnelling microscopic images\cite{choudhary2021computational}. }\\
+
+\footnotesize{Novel Materials Discovery (NOMAD) Repository}
+&\footnotesize{\citet{draxl2019nomad}}
+&\footnotesize{This is a community-driven database that hosts the computational materials data generated from various different DFT codes, it contains 19.2M+ entries for over 4.3 M represented materials.}\\
+
+\footnotesize{Computational 2D Materials Database (C2DB)}
+&\footnotesize{\citet{Haastrup_2018,Gjerding_2021}}
+&\footnotesize{This database contains the computational results for  $\sim$4000 2D materials with more than 40 different crystal structures. It reported the corresponding structures, energetics, magnetic ground states, mechanical properties, electronic properties at PBE, HSE and G$_0$W$_0$ levels of theory, as well as RPA electronic polarisability and BSE optical absorbance. }\\
+
+\footnotesize{Open Catalyst Project}
+&\footnotesize{\citet{chanussot2021open} (OC20); \citet{tran2023open} (OC22)}
+&\footnotesize{This database reported the structures and energetics for surface adsorbates at the revised-PBE level of theory\cite{Hammer1999RPBE}. The OC20 contains 1,281,040 DFT relaxation trajectories ($\sim$265M single point calculations), focusing adsorbate chemistries on nitrogen-, oxygen- and carbon-containing molecules. The OC22 focuses on oxide catalysts for the oxygen evolution reactions (OERs), which contains 62,311 DFT relaxation trajectories ($\sim$9.8 M single point calculations)}\\
+
+\end{longtable}
+\endgroup
+
+
+While large-scale, general-purposed repositories such as the Materials Project, OQMD and NOMAD provide broad coverage of structures and a standard set of properties computed with consistent protocols, which excel at discovering trends in materials properties and providing wide-coverage training sets for  general ML models, many scientific and engineering questions demand datasets that are computed with workflows and parameters tuned specifically for a more targeted set of materials and properties. Therefore, many property-focused databases have also been curated by different research groups across the globe to fill in the gap left by these general-purposed databases. These represent dedicated efforts in the community to riguously test the convergence criteria, improve the data accuracies, develop specialised computational algortithms as well as post-processing and data analysis methodologies for targeted materials properties, such as the GW quasiparticle energies and excited-state BSE spectra,  electron--phonon coupling and superconducting spectral functions, anharmonic phonon scattering rates and lattice thermal conductivities, magnetic and ferroelectrics, for which \cref{tab:property_databases} provided more detailed account for these dedicated databases.
+
+This specialsation is driven by three practical needs. Firstly, many properties require property-specific convergence and finite-size corrections, for example, determining the electron-phonon coupling constants requires reciprocal space sampling to be performed on densed $\bm{k}$- and $\bm{q}$-point grids, mouting to an $\sim N_{\bm{k}}\times N_{\bm{q}}$--fold increase in the computational cost per structure. Secondly, accurate evaluation typically needs additional post-processings, suuch as Wannierisation, interpolation of matrix elements, many-body self-energy workflows, phonon interpolation, and so on, that are most robust when implemented by more specialised domain expertises in the automated computational pipeline. Thirdly, focused datasets enable targeted validation against experiment or higher-level theory, producing reliable benchmarks for screening and ML training. As such, these specialised databases have critically complemented the large-scale generic computational materials databases to provide high-quality data for more complex materials properties that are not typically available in the general-purposed databases, which are essential for generalising robust knowledges of structure-property relationships for functional materials, as well as training physics-specific ML models for accelerating materials discoveries. 
+  
+
+
+\begingroup % Start a group to localize the change
+\renewcommand{\arraystretch}{1.2}  
+\LTcapwidth=\textwidth
+
+\begin{longtable}{p{2cm}p{3cm}p{0.9cm}p{11cm}}
+\caption{List of exemplary high-throughput computational studies that applied workflows as tabulated in \cref{tab:automate2} (or similar) to establish targeted databases of specific materials properties.}
+    \label{tab:property_databases}\\
+    
+    \hline\hline
+     \textbf{\footnotesize{Workflow}}    & \textbf{\footnotesize{Reference}}  & 
+     \textbf{\footnotesize{Year}} &
+     \textbf{\footnotesize{Description}}\\
+     \hline
+     \endfirsthead
+\caption*{Table \ref{tab:property_databases} (Continued): List of notable computational materials properties databases.}\\\toprule
+     \textbf{\footnotesize{Workflow}}    & \textbf{\footnotesize{Reference}}  &  
+     \textbf{\footnotesize{Year}} &
+     \textbf{\footnotesize{Description}}\\
+     \hline
+\endhead
+\hline\hline
+\endfoot
+\hline\hline
+\endlastfoot
+
+\footnotesize{Dielectric and polarisation} 
+
+& \footnotesize{\citet{yim2015novel}}
+& \footnotesize{2015}
+& \footnotesize{Established a library of electronic dielectric constants for $>$1800 binary and ternary oxides to facilitate the identification of high-$\kappa$ gate dielectric materials for microelectronics. }
+\\
+& \footnotesize{\citet{petousis2017high}}
+& \footnotesize{2017}
+& \footnotesize{Largest database (at the time of publishing) of dielectric constants and refractive index of materials computed with DFPT, containing 1,056 compounds, which is integrated into the Materials Project Database.\cite{jain_apl_mater}}\\
+
+& \footnotesize{\citet{lee2018high}}
+& \footnotesize{2018}
+& \footnotesize{Extending the previous work\cite{yim2015novel} to include non-oxide materials, exploring the trends between $E_{g}$ and $\kappa$ for inorganic solids.}\\
+
+& \footnotesize{\citet{choudhary2020high}}
+& \footnotesize{2020}
+& \footnotesize{Computation of the $\Gamma$-point phonons, infrared intensities, Born-effective charges, piezoelectric, and dielectric tensors for 5015 non-metallic materials in the JARVIS-DFT database.\cite{choudhary2020joint}}\\
+
+
+
+\footnotesize{Electronic band structure}
+&\footnotesize{\citet{setyawan2011high}}
+&\footnotesize{2011}
+&\footnotesize{One of the early adaptations of high-throughput workflow in computational material science, computing the band structures for 7,439 compounds at the GGA+$U$ level for the research of scintillator materials for $\gamma$-ray radiation detection.}\\
+
+&\footnotesize{\citet{kim2020band}} 
+&\footnotesize{2020}
+&\footnotesize{Band gap energies for 10,481 materials at the hybrid-GGA level of theory, improving the underestimated GGA-band gap values.}\\
+
+&\footnotesize{\citet{kawaguchi2024band}}
+&\footnotesize{2024}
+&\footnotesize{Electronic band structure database for 9,004 layered intercalation
+compounds.}\\
+
+\footnotesize{Bond analysis}
+&\footnotesize{\citet{naik2023quantum}}
+&\footnotesize{2023}
+&\footnotesize{Database of chemical bonding analysis performed on 1,520 insulators and semiconductors.} \\
+
+\footnotesize{Excited states (GW-BSE)}
+
+&\footnotesize{\citet{rasmussen2021towards}}
+&\footnotesize{2021}
+&\footnotesize{$G_{0}W_{0}$-level electronic band structures for 370 two-dimensional materials covering 14 different crystal structures
+and 52 chemical elements. Seminal work that lays the foundation towards automatised workflow for high-throughput $G_{0}W_{0}$ band structure calculations for solids.}\\
+
+&\footnotesize{\citet{varrassi2024automated}}
+&\footnotesize{2024} 
+&\footnotesize{Development of a fully automated workflow for $G_0W_0$ calculation that is interfaced with VASP, with which a database of QP energies for 320 bulk structures was established.} \\
+
+&\footnotesize{\citet{gao2025pah101}}
+&\footnotesize{2025}
+&\footnotesize{Dataset of $GW$+BSE for 101 polyaromatic hydrocarbon molecular crystals with $\sim 500$ atoms in the unit cell.}\\
+
+\footnotesize{Elastic constants}
+&\footnotesize{\citet{deJong2015_elastic_MP}}
+&\footnotesize{2015}
+&\footnotesize{Database of full elastic properties for 1,181 (at the time of paper publication) inorganic crystals, that are fully integrated into the Materials Project database.}\\
+
+&
+\footnotesize{\citet{Toher2017_AFLOW_elastic}}
+&\footnotesize{2017}
+&\footnotesize{Based on the elastic property library that was further combined with the thermomechanical property workflow to compute the thermoelastic properties for over 3,500 materials. }\\
+
+&\footnotesize{\citet{choudhary2018elastic}}
+&\footnotesize{2018}
+&\footnotesize{Database collating the elastic properties for 11,067 bulk and 257 monolayer materials.}\\
+
+&\footnotesize{\citet{nath2021high}}
+&\footnotesize{2021}
+&\footnotesize{High-throughput workflow that incorporated anharmonic effects to determine the (high-temperature) thermoelastic properties of ceramics.}\\
+
+\footnotesize{Harmonic phonons}
+&\footnotesize{\citet{petretto2018high}}
+&\footnotesize{2018}
+&\footnotesize{Phononic properties for 1,512 semiconductors computed based on density-functional perturbation theory}
+\\
+&\footnotesize{\citet{Togo2018_PhononDB}}
+&\footnotesize{-}
+&\footnotesize{Repository of computed phonon force constants and dispersion relationships collated by the original author of the \texttt{phonopy} code.}\\
+
+
+\footnotesize{Electron-phonon}
+&\footnotesize{\citet{Wang2022_diboride_EPC}}
+&\footnotesize{2022}
+&\footnotesize{Computed electron-phonon coupling constants for a small set of ternary metal diborides, from which 43 compounds were found to show electron-phonon coupling strengths that are stronger than \ce{MgB2}.}\\
+
+&\footnotesize{\citet{Wines2023_2D_SC_EPC}}
+&\footnotesize{2023}
+&\footnotesize{Screened over 1000 2D materials, electron-phonon coupling strengths and the superconducting transition temperatures were computed based on the McMillan-Allen-Dynes formula for 165 of them, from which 34 dynamically stable structures were found with transition temperatures above 5K.}\\
+
+&\footnotesize{\citet{Gibson2025_alpha2F_database}}
+&\footnotesize{2025}
+&\footnotesize{Including the computation of  superconducting spectral function $\alpha^2F(\omega)$ for 818 dynamically stable materials.}\\
+
+&\footnotesize{\citet{daSilva2025_2D_ML_EPC}}
+&\footnotesize{2025}
+&\footnotesize{High-throughput screening of 4,383 2D materials, from which the critical temperature for $\sim 900$ dynamically stable 2D materials were computed based on the McMillan-Allen-Dynes formula.}\\
+
+\footnotesize{Anharmonic phonons and related}
+& \footnotesize{\citet{nath2016high}}
+& \footnotesize{2016}
+& \footnotesize{A benchmark set containing the specific heat capacities, thermal expansion coefficients, Gr\"{u}neisen parameters and bulk moduli for 130 compounds, which is aimed to serve as a benchmark set for the computational methods for predicting these properties.}\\
+
+&\footnotesize{\citet{van2016high}}
+&\footnotesize{2016}
+&\footnotesize{High-throughput screening of $\sim 300$ cubic oxide and fluoro-perovskites with lattice thermal conductivities computed based on the 2nd- and 3rd-order force constants.}\\
+
+& \footnotesize{\citet{xia2020high}}
+& \footnotesize{2020}
+& \footnotesize{A systematic study of the lattice thermal conductivities for 37 binary rocksalt and zincblend compounds with the explicit inclusion of three- and four-phonon scattering processes.}\\
+
+& \footnotesize{\citet{pal2021accelerated}}
+& \footnotesize{2021}
+& \footnotesize{Computational screening performed on a set of 628 quaternary chalcogenides, with low $\kappa_L$ values for  $\sim10$ candidates verified through the Boltzmann transport equation calculations.}\\
+
+& \footnotesize{\citet{yang2021altas}, \citet{yang2022mapping}}
+& \footnotesize{2022}
+& \footnotesize{Mapping the room-temperature stabilities and vibrational anharmonicity landscape for $\sim 4000$ cubic single perovskites and $\sim 2000$ cubic double perovskites.}\\
+
+& \footnotesize{\citet{li2022high}}
+& \footnotesize{2022}
+& \footnotesize{Developed an efficient descriptor to facilitate the screening of 1,171 candidates from Materials Projects with strong contributions from rattling modes towards low $\kappa_L$, which was computed using the empirical equation for $\kappa_L$ proposed by \citet{yan2015material} for high-throughput computation.}\\
+
+
+
+\footnotesize{magnetic ordering}
+&\footnotesize{\citet{torelli2019high}}
+&\footnotesize{2019}
+&\footnotesize{Identified 11 ferromagnetic insulators from Computational 2D Materials Database (C2DB)\cite{Haastrup_2018,Gjerding_2021} containing $>3,700$ entries.}\\
+
+&\footnotesize{\citet{horton2019high}}
+&\footnotesize{2019}
+&\footnotesize{Reporting the magnetic ordering workflow in the original atomate\cite{mathew2017atomate} framework that is used for screening the magnetic ground states for inorganic solids in the Materials Project database.}\\
+
+&\footnotesize{\citet{frey2020high}}
+&\footnotesize{2020}
+&\footnotesize{More than 27,000 magnetic orderings for over 3,000 transition metal oxides in the Materials Project database were computed to determine their magnetic ground states and estimate their effective exchange parameters and transition temperatures. A thorough band topology analysis was performed, from which 18 new candidates of ferromagnetic topological semimetals, axion insulators, and antiferromagnetic topological insulators were identified.}\\
+
+&\footnotesize{\citet{torelli2020high}}
+&\footnotesize{2020}
+&\footnotesize{This study screened 4,264 potential 2D materials from which 85 and 61 materials with ferromagnetic and antiferromagnetic ground states were identified, respectively. }\\
+
+&\footnotesize{\citet{torelli2020high}}
+&\footnotesize{2020}
+&\footnotesize{From screening a database containing 167,767 bulk inorganic solids, this study first identified 4,264 potentially exfoliable 2D materials, from which further screening the colinear magnetic ground states led to the identification of 85 FM and 61 AFM 2D materials. }\\
+
+&\footnotesize{\citet{su2022high}}
+&\footnotesize{2022}
+&\footnotesize{This work screened 1049 transition metal compounds without oxygens to identify potential magnetic topological materials. }\\
+
+&\footnotesize{\citet{sodequist2024magnetic}}
+&\footnotesize{2024}
+&\footnotesize{High-throughput screening for the magnetic ground states in 2D materials reported in the C2DB, from which 58 ferromagnets, 21 collinear anti-ferromagnets, and 85 non-collinear ground states were identified, and 15 are chiral spin spirals driven by  Dzyaloshinskii-Moriya interactions.}\\
+
+ferroelectrics
+&\footnotesize{\citet{kruse2023two}}
+&\footnotesize{2023}
+&\footnotesize{This work screened the C2DB from which 63 potential 2D ferroelectrics were identified. }\\
+
+&\footnotesize{\citet{ricci2024candidate}}
+&\footnotesize{2024}
+&\footnotesize{This work screened 1978 polar structures from the Materials Project database, with a new workflow that compared the energy difference between the polar and nonpolar phases of a given material, this work identified a subset of 182 materials that can be potentially ferroelectric}\\
+
+\end{longtable}
+\endgroup
+
+
+These computational materials databases provide transformative contributions to the research community through several complementary mechanisms, which we shall briefly summarise before ending this section. These contributions include: (a) \textit{Standardisation and reproducibility}: By curating data at consistent theory levels with identical numerical settings, these databases establish a shared baseline for validating and comparing future computational work, directly enhancing reproducibility. (b) \textit{Reducing redundancy and accelerating model developments}: Centralised database eliminates unnecessary recalculation of existing data, thus improves the research efficiency and reduces the time to generate new insights to advance scientific discoveries. This is particularly valuable  for the development of new ML/AI materials models, where prior data generation is often prohibitively expensive. The Matbench\cite{dunn2020benchmarking} initiative further exemplifies this benefit: by providing standardised datasets, evaluation metrics, and public leader-boards for model comparison, it has substantially accelerated the development of ML/AI models in materials science and enabled users to select the most appropriate tools from the growing ecosystem. (c) \textit{Consistent structural starting points}: Databased structures serve as reliable starting points for further targeted studies of defects, interfaces, heterostructures, disordered and other more complex materials systems. (d) \textit{Pattern discovery via unsupervised learning}: The chemical and structural diversity in large databases enables unsupervised methods to uncover hidden structure--property relationships,\cite{glielmo2021unsupervised,nunez2019exploring,jia2022unsupervised} generating unexpected insights that are extremely valuable for guiding the future materials design. (e) \textit{Quantitative property prediction}: Supervised ML trained on database structure-property pairs yields quantitative models that enable fast, predictive, property-driven materials discovery.\cite{bartel2018physical,mazhnik2020application} (f) \textit{Infrastructure and FAIR principles}: Database curation establishes standardised computational workflows [\cref{tab:automate2}] and formats for data storage and exchange, naturally implementing the FAIR (Findable, Accessible, Interoperable, Reusable) data principle\cite{scheffler2022fair} and opening new research horizons. 
